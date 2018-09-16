@@ -18,7 +18,6 @@ files and classes when code is run, so be careful to not modify anything else.
 # Number of states explored should be a number.
 # maze is a Maze object based on the maze from the file specified by input filename
 # searchMethod is the search method specified by --method flag (bfs,dfs,greedy,astar)
-import heapq
 
 def search(maze, searchMethod):
     print(maze.getStart())
@@ -36,9 +35,11 @@ def bfs(maze):
     # TODO: Write your code here
     # return path, num_states_explored
     queue = [[maze.getStart()]]
-    objs = []
+    objs = maze.getObjectives()
+    saveobjs = []
     visited = []
-    while len(objs) < len(maze.getObjectives()):
+    savevis = []
+    while len(objs) > 0:
         curr = queue.pop()
         for neighbor in maze.getNeighbors(curr[len(curr)-1][0],curr[len(curr)-1][1]):
             if neighbor in visited:
@@ -47,18 +48,26 @@ def bfs(maze):
                 visited.insert(0,neighbor)
             temp = curr.copy()
             temp.append(neighbor)
-            if neighbor in maze.getObjectives():
-                objs.insert(0,temp)
-            if maze.isValidMove(neighbor[0],neighbor[1]):
-                queue.insert(0,temp)
-            '''
-            if loc in maze.getObjectives():
-                objs.insert(0,[curr,loc])
-            if maze.isValidMove(loc[0],loc[1]):
-                queue.insert(0,[curr,loc])
-            '''
+            if neighbor in objs:
+                saveobjs.append(temp)
+                objs.remove(neighbor)
+                queue = [[neighbor]]
+                for point in visited:
+                    if point not in savevis:
+                        savevis.append(point)
+                visited = []
+            else:
+                if maze.isValidMove(neighbor[0],neighbor[1]):
+                    queue.insert(0,temp)
+
     #print(visited)
-    return objs[0], len(visited)
+    sol = []
+    for i in range(0, len(saveobjs)):
+        for j in range(0,len(saveobjs[i])):
+            if i==0 or j >0:
+                sol.append(saveobjs[i][j])
+
+    return sol, len(savevis)
 
 
 def dfs(maze):
