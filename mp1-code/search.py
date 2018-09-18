@@ -33,10 +33,30 @@ def bfs(maze):
     return [], 0
 
 
+from collections import deque
+
 def dfs(maze):
-    # TODO: Write your code here
-    # return path, num_states_explored
-    return [], 0
+    start = maze.getStart()
+    goals = maze.getObjectives()
+    num_goals = len(goals)
+    visited_goals = []
+    path = []
+    visited, stack = [], [start]
+    num_states_explored = 0
+    while stack:
+        vertex = stack.pop()
+        if (vertex in goals) and (vertex not in visited_goals) :
+            visited_goals.append(vertex)
+            if len(visited_goals) >= num_goals:
+                return path, num_states_explored
+        if vertex not in visited:
+            path.append(vertex)
+            visited.append(vertex)
+            num_states_explored += 1
+            neighbors = maze.getNeighbors(vertex[0], vertex[1])
+            for neighbor in neighbors:
+                stack.append(neighbor)
+    return path, num_states_explored
 
 
 def greedy(maze):
