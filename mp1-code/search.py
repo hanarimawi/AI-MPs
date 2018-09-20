@@ -31,34 +31,42 @@ def search(maze, searchMethod):
     }.get(searchMethod, [])
 
 dirs = [(0,1),(0,-1),(1,0),(-1,0)]
+
+def getPath(start, point, visited):
+    if point == start:
+      return []
+    else:
+      return getPath(start,visited[point][0],visited) + [point]
+
 def bfs(maze):
     # TODO: Write your code here
     # return path, num_states_explored
-    queue = [[maze.getStart()]]
+    queue = [(maze.getStart(),0)]
     objs = maze.getObjectives()
     saveobjs = []
-    visited = []
+    visited = {} #entry is (previous node, cost so far)
     savevis = []
+    start = maze.getStart()
     while len(objs) > 0:
         curr = queue.pop()
-        for neighbor in maze.getNeighbors(curr[len(curr)-1][0],curr[len(curr)-1][1]):
-            if neighbor in visited:
-                continue
+        if curr[0] not in savevis:
+          savevis.append(curr[0])
+        for neighbor in maze.getNeighbors(curr[0][0],curr[0][1]):
+            if neighbor in visited.keys():
+              if visited[neighbor][1] > curr[1]:
+                visited[neighbor] = (curr[0],curr[1]+1)
+              continue
             else:
-                visited.insert(0,neighbor)
-            temp = curr.copy()
-            temp.append(neighbor)
+                visited[neighbor] = (curr[0],curr[1]+1)
             if neighbor in objs:
-                saveobjs.append(temp)
+                saveobjs.append(getPath(start,neighbor,visited))
                 objs.remove(neighbor)
-                queue = [[neighbor]]
-                for point in visited:
-                    if point not in savevis:
-                        savevis.append(point)
-                visited = []
+                queue = [(neighbor,0)]
+                visited = {}
+                start = neighbor
             else:
                 if maze.isValidMove(neighbor[0],neighbor[1]):
-                    queue.insert(0,temp)
+                    queue.insert(0,(neighbor,curr[1]+1))
 
     #print(visited)
     sol = []
@@ -84,5 +92,39 @@ def greedy(maze):
 
 def astar(maze):
     # TODO: Write your code here
+    queue = [(maze.getStart(),0)]
+    objs = maze.getObjectives()
+    saveobjs = []
+    visited = {} #entry is (previous node, cost so far)
+    savevis = []
+    start = maze.getStart()
+    while len(objs) > 0:
+        curr = queue.pop()
+        if curr[0] not in savevis:
+          savevis.append(curr[0])
+        for neighbor in maze.getNeighbors(curr[0][0],curr[0][1]):
+            if neighbor in visited.keys():
+              if visited[neighbor][1] > curr[1]:
+                visited[neighbor] = (curr[0],curr[1]+1)
+              continue
+            else:
+                visited[neighbor] = (curr[0],curr[1]+1)
+            if neighbor in objs:
+                saveobjs.append(getPath(start,neighbor,visited))
+                objs.remove(neighbor)
+                queue = [(neighbor,0)]
+                visited = {}
+                start = neighbor
+            else:
+                if maze.isValidMove(neighbor[0],neighbor[1]):
+                    queue.insert(0,(neighbor,curr[1]+1))
 
+    #print(visited)
+    sol = []
+    for i in range(0, len(saveobjs)):
+        for j in range(0,len(saveobjs[i])):
+            if i==0 or j >0:
+                sol.append(saveobjs[i][j])
+
+    return sol, len(savevis)
     return [], 0
