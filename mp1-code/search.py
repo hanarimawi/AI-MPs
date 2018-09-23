@@ -55,7 +55,7 @@ def bfs(maze):
         if curr.point not in savevis:
           savevis.append(curr.point)
 
-        #process each neighbor and check if we've reached the goal
+        #process each neighbor and check if we've reached the goal checkcheck
         for neighbor in maze.getNeighbors(curr.point[0],curr.point[1]):
             n = state(neighbor,curr.obj.copy(),curr.cost+1)
             if neighbor in n.obj:
