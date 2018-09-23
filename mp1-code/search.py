@@ -6,6 +6,7 @@
 # attribution to the University of Illinois at Urbana-Champaign
 # 
 # Created by Michael Abir (abir2@illinois.edu) on 08/28/2018
+import heapq
 
 """
 This is the main entry point for MP1. You should only modify code
@@ -32,32 +33,45 @@ def bfs(maze):
     # 
     return [], 0
 
-
-from collections import deque
+def getPath(start, state, visited):
+    if state.p == start:
+      return [start]
+    else:
+      return getPath(start,visited[str(state.p)+str(state.obj)][0],visited) + [state.p]
 
 def dfs(maze):
+    stack = [state(maze.getStart(),maze.getObjectives(),0)]  #holds frontier
+    objs = maze.getObjectives()
+    visited = {} #entry is str(point)+str(obj): (previous state, best cost to that state)
+    savevis = [] #comprehensive list of visited maze locations
     start = maze.getStart()
-    goals = maze.getObjectives()
-    num_goals = len(goals)
-    visited_goals = []
-    path = []
-    visited, stack = [], [start]
-    num_states_explored = 0
-    while stack:
-        vertex = stack.pop()
-        if (vertex in goals) and (vertex not in visited_goals) :
-            visited_goals.append(vertex)
-            if len(visited_goals) >= num_goals:
-                return path, num_states_explored
-        if vertex not in visited:
-            path.append(vertex)
-            visited.append(vertex)
-            num_states_explored += 1
-            neighbors = maze.getNeighbors(vertex[0], vertex[1])
-            for neighbor in neighbors:
-                stack.append(neighbor)
-    return path, num_states_explored
+    done = False
+    while not done:
 
+        curr = stack.pop()
+
+        if curr.p not in savevis:
+          savevis.append(curr.p)
+
+        #process each neighbor and check if we've reached the goal
+        for neighbor in maze.getNeighbors(curr.p[0],curr.p[1]):
+            if maze.isValidMove(neighbor[0],neighbor[1]):
+                n = state(neighbor,curr.obj.copy(),curr.c+1)
+                if neighbor in n.obj:
+                    n.obj.remove(neighbor)
+                skey = str(n.p)+str(n.obj)
+                if skey in visited.keys():
+                    if visited[skey][1] > n.c:
+                        visited[skey] = (curr,n.c)
+                    if visited[skey][1] <= n.c:
+                        continue
+                else:
+                    visited[skey] = (curr,n.c)
+                if len(n.obj) == 0:
+                    sol = getPath(maze.getStart(),n,visited)
+                    done = True
+                stack.insert(0, n)#.append(n)
+    return sol, len(savevis)
 
 def greedy(maze):
     # TODO: Write your code here
@@ -69,3 +83,28 @@ def astar(maze):
     # TODO: Write your code here
     # return path, num_states_explored
     return [], 0
+
+def manhattan(p1,p2):
+    return abs(p1[0]-p2[0])+abs(p1[1]-p2[1])
+
+def h(point, obj,cost):
+    if len(obj) == 0:
+        return cost
+    z = max([manhattan(point, i) for i in obj])
+    y= []
+    z = 0
+    for i in range(len(obj)-1):
+        d = [manhattan(point, i) for i in obj]
+        if 0 in d:
+            d.remove(0)
+        z+=(min(d))
+        z = sum(y)
+    return z + cost
+
+class state:
+    def __init__(self,p,obj,c):
+        self.p = p
+        self.obj= obj
+        self.c = c
+    def __lt__(self, other):
+        return self.c + h(self.p,self.obj,self.c) < other.c + h(other.p,other.obj,other.c)
