@@ -89,7 +89,7 @@ def dfs(maze):
     done = False
     while not done:
 
-        curr = stack.pop()
+        curr = stack.pop(0)
 
         if curr.point not in savevis:
           savevis.append(curr.point)
