@@ -77,9 +77,38 @@ def bfs(maze):
 
 
 def dfs(maze):
-    # TODO: Write your code here
-    # return path, num_states_explored
-    return [], 0
+    stack = [state(maze.getStart(),maze.getObjectives(),0)]  #holds frontier
+    objs = maze.getObjectives()
+    visited = {} #entry is str(point)+str(obj): (previous state, best cost to that state)
+    savevis = [] #comprehensive list of visited maze locations
+    start = maze.getStart()
+    done = False
+    while not done:
+
+        curr = stack.pop()
+
+        if curr.p not in savevis:
+          savevis.append(curr.p)
+
+        #process each neighbor and check if we've reached the goal
+        for neighbor in maze.getNeighbors(curr.p[0],curr.p[1]):
+            if maze.isValidMove(neighbor[0],neighbor[1]):
+                n = state(neighbor,curr.obj.copy(),curr.c+1)
+                if neighbor in n.obj:
+                    n.obj.remove(neighbor)
+                skey = str(n.p)+str(n.obj)
+                if skey in visited.keys():
+                    if visited[skey][1] > n.c:
+                        visited[skey] = (curr,n.c)
+                    if visited[skey][1] <= n.c:
+                        continue
+                else:
+                    visited[skey] = (curr,n.c)
+                if len(n.obj) == 0:
+                    sol = getPath(maze.getStart(),n,visited)
+                    done = True
+                stack.insert(0, n)#.append(n)
+    return sol, len(savevis)
 
 class gstate:
     def __init__(self,point,obj,cost):
