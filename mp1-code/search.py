@@ -91,7 +91,7 @@ def dfs(maze):
 
         curr = stack.pop()
 
-        if curr.p not in savevis:
+        if curr.point not in savevis:
           savevis.append(curr.point)
 
         #process each neighbor and check if we've reached the goal
