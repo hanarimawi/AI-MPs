@@ -32,8 +32,6 @@ def search(maze, searchMethod):
         "astar": astar,
     }.get(searchMethod)(maze)
 
-def get_manhattan(currentState, goalState):
-    return abs(currentState[0] - goalState[0]) + abs(currentState[1] - goalState[1])
 
 #helper function to backtrack a path from the goal state
 def getPath(start, state, visited, objlen):
@@ -131,7 +129,7 @@ def greedy(maze):
     pq = PriorityQueue()
     start = maze.getStart()
     goal = maze.getObjectives()[0]
-    pq.put((get_manhattan(start, goal), start, (-1, -1)))
+    pq.put((manhattan(start, goal), start))
     visited = {start: (-1, -1)}
     states_seen = 0
     path = list()
@@ -146,7 +144,7 @@ def greedy(maze):
             for neighbor in maze.getNeighbors(current[1][0], current[1][1]):
                 if neighbor not in visited:
                     visited[neighbor] = current[1]
-                    pq.put((get_manhattan(neighbor, goal), neighbor, current[1]))
+                    pq.put((manhattan(neighbor, goal), neighbor))
     while latest != (-1, -1):
         path.append(latest)
         latest = visited[latest]
