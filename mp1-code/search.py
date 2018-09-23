@@ -32,7 +32,7 @@ def search(maze, searchMethod):
     }.get(searchMethod)(maze)
 
 #helper function to backtrack a path from the goal state
-def getPath(start, state, visited,objlen):
+def getPath(start, state, visited, objlen):
     if state.point == start and len(state.obj) ==objlen:
       return [start]
     else:
@@ -69,7 +69,7 @@ def bfs(maze):
             else:
                 visited[skey] = (curr,n.cost)
             if len(n.obj) == 0:
-                sol = getPath(maze.getStart(),n,visited)
+                sol = getPath(maze.getStart(),n,visited, len(maze.getObjectives()))
                 done = True
             queue.insert(0,n)
     print(total)
@@ -96,16 +96,16 @@ def dfs(maze):
                 n = state(neighbor,curr.obj.copy(),curr.c+1)
                 if neighbor in n.obj:
                     n.obj.remove(neighbor)
-                skey = str(n.p)+str(n.obj)
+                skey = str(n.point)+str(n.obj)
                 if skey in visited.keys():
-                    if visited[skey][1] > n.c:
-                        visited[skey] = (curr,n.c)
-                    if visited[skey][1] <= n.c:
+                    if visited[skey][1] > n.cost:
+                        visited[skey] = (curr,n.cost)
+                    if visited[skey][1] <= n.cost:
                         continue
                 else:
-                    visited[skey] = (curr,n.c)
+                    visited[skey] = (curr,n.cost)
                 if len(n.obj) == 0:
-                    sol = getPath(maze.getStart(),n,visited)
+                    sol = getPath(maze.getStart(),n,visited, len(maze.getObjectives()))
                     done = True
                 stack.insert(0, n)#.append(n)
     return sol, len(savevis)
@@ -150,7 +150,7 @@ def greedy(maze):
             else:
                 visited[skey] = (curr,n.cost)
             if len(n.obj) == 0:
-                sol = getPath(maze.getStart(),n,visited)
+                sol = getPath(maze.getStart(),n,visited, len(maze.getObjectives()))
                 done = True
             heapq.heappush(heap,n)
     return sol, len(savevis)
@@ -288,7 +288,7 @@ def astar(maze):
             else:
                 visited[skey] = (curr,n.cost)
             if len(n.obj) == 0:
-                sol = getPath(maze.getStart(),n,visited, len(maze.getObjectives()))
+                sol = getPath(maze.getStart(), n, visited, len(maze.getObjectives()))
                 done = True
             heapq.heappush(heap,n)
     print(hit)
