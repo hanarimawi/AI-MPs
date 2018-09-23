@@ -33,6 +33,8 @@ def search(maze, searchMethod):
 
 dirs = [(0,1),(0,-1),(1,0),(-1,0)]
 
+
+#helper function to backtrack a path from the goal state
 def getPath(start, state, visited):
     if state.p == start:
       return [start]
@@ -42,16 +44,20 @@ def getPath(start, state, visited):
 def bfs(maze):
     # TODO: Write your code here
     # return path, num_states_explored
-    queue = [state(maze.getStart(),maze.getObjectives(),0)]
+    queue = [state(maze.getStart(),maze.getObjectives(),0)]  #holds frontier
     objs = maze.getObjectives()
-    visited = {} #entry is (cost so far, previous node)
-    savevis = []
+    visited = {} #entry is str(point)+str(obj): (previous state, best cost to that state)
+    savevis = [] #comprehensive list of visited maze locations
     start = maze.getStart()
     done = False
     while not done:
+
         curr = queue.pop()
+
         if curr.p not in savevis:
           savevis.append(curr.p)
+
+        #process each neighbor and check if we've reached the goal
         for neighbor in maze.getNeighbors(curr.p[0],curr.p[1]):
             if maze.isValidMove(neighbor[0],neighbor[1]):
                 n = state(neighbor,curr.obj.copy(),curr.c+1)
@@ -79,11 +85,45 @@ def dfs(maze):
     # return path, num_states_explored
     return [], 0
 
+class gstate:
+    def __init__(self,p,obj,c):
+        self.p = p
+        self.obj= obj
+        self.c = c
+    def __lt__(self, other):
+        return h(self.p,self.obj[0]) < h(other.p,other.obj[0])
+
 
 def greedy(maze):
     # TODO: Write your code here
-    # return path, num_states_explored
-    return [], 0
+    heap = [gstate(maze.getStart(),maze.getObjectives(),h(maze.getStart(),maze.getObjectives(),0))]
+    heapq.heapify(heap)
+    objs = maze.getObjectives()
+    visited = {} #entry is str(point)+str(obj): (previous state, best cost to that state)
+    savevis = []
+    start = maze.getStart()
+    done = False
+    while not done:
+        curr = heapq.heappop(heap)
+        if curr.p not in savevis:
+            savevis.append(curr.p)
+        for neighbor in maze.getNeighbors(curr.p[0],curr.p[1]):
+            n = gstate(neighbor,curr.obj.copy(),curr.c+1)
+            if neighbor in n.obj:
+                n.obj.remove(neighbor)
+            skey = str(n.p)+str(n.obj)
+            if skey in visited.keys():
+                if visited[skey][1] > n.c:
+                    visited[skey] = (curr,n.c)
+                if visited[skey][1] <= n.c:
+                    continue
+            else:
+                visited[skey] = (curr,n.c)
+            if len(n.obj) == 0:
+                sol = getPath(maze.getStart(),n,visited)
+                done = True
+            heapq.heappush(heap,n)
+    return sol, len(savevis)
 
 def manhattan(p1,p2):
     return abs(p1[0]-p2[0])+abs(p1[1]-p2[1])
@@ -91,9 +131,19 @@ def manhattan(p1,p2):
 
 def h(point, obj,cost):
     if len(obj) == 0:
-        return 0
+        return cost
     z = max([manhattan(point, i) for i in obj])
-    return z
+
+
+    y= []
+    z = 0
+    for i in range(len(obj)-1):
+        d = [manhattan(point, i) for i in obj]
+        if 0 in d:
+            d.remove(0)
+        z+=(min(d))
+        z = sum(y)
+    return z + cost
 
 class state:
     def __init__(self,p,obj,c):
@@ -108,9 +158,8 @@ def astar(maze):
     heap = [state(maze.getStart(),maze.getObjectives(),h(maze.getStart(),maze.getObjectives(),0))]
     heapq.heapify(heap)
     objs = maze.getObjectives()
-    saveobjs = []
-    visited = {}
-    savevis = []
+    visited = {} #entry is str(point)+str(obj): (previous state, best cost to that state)
+    savevis = [] #comprehensive list of visited maze locations by all paths
     start = maze.getStart()
     done = False
     while not done:
@@ -135,33 +184,3 @@ def astar(maze):
                     done = True
                 heapq.heappush(heap,n)
     return sol, len(savevis)
-
-'''
-
-        if curr.point in objs:
-                print("found obj")
-                saveobjs.append(getPath(start,curr.point,visited))
-                curr.objs.remove(curr.point)
-                if(len(objs)>=1):
-                    cobj = objs[0]
-                heap = [(manhattan(curr[1],cobj),curr[1])]
-                visited = {}
-                start = curr[1]
-        else:
-            if curr[1] not in savevis:
-                savevis.append(curr[1])
-            for neighbor in maze.getNeighbors(curr[1][0],curr[1][1]):
-                if neighbor in visited.keys():
-                  if visited[neighbor][0] > curr[0]:
-                    visited[neighbor] = ((curr[0]-manhattan(curr[1],cobj)+manhattan(neighbor,cobj)+1),curr[1])
-                  if visited[neighbor][0] <= curr[0]:
-                    continue
-                else:
-                    visited[neighbor] = ((curr[0]-manhattan(curr[1],cobj)+manhattan(neighbor,cobj)+1),curr[1])
-                if maze.isValidMove(neighbor[0],neighbor[1]):
-                    heapq.heappush(heap,(curr[0]-manhattan(curr[1],cobj)+manhattan(neighbor,cobj)+1, neighbor))
-    sol = [maze.getStart()]
-    for i in range(0, len(saveobjs)):
-        for j in range(0,len(saveobjs[i])):
-            sol.append(saveobjs[i][j])
-            '''
