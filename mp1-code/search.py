@@ -19,6 +19,7 @@ files and classes when code is run, so be careful to not modify anything else.
 # maze is a Maze object based on the maze from the file specified by input filename
 # searchMethod is the search method specified by --method flag (bfs,dfs,greedy,astar)
 import heapq
+from queue import PriorityQueue
 
 def search(maze, searchMethod):
     print(maze.getStart())
@@ -30,6 +31,9 @@ def search(maze, searchMethod):
         "greedy": greedy,
         "astar": astar,
     }.get(searchMethod)(maze)
+
+def get_manhattan(currentState, goalState):
+    return abs(currentState[0] - goalState[0]) + abs(currentState[1] - goalState[1])
 
 #helper function to backtrack a path from the goal state
 def getPath(start, state, visited, objlen):
@@ -124,36 +128,29 @@ class gstate:
 
 
 def greedy(maze):
-    # TODO: Write your code here
-    heap = [gstate(maze.getStart(),maze.getObjectives(),h(maze.getStart(),maze.getObjectives(),0))]
-    heapq.heapify(heap)
-    objs = maze.getObjectives()
-    visited = {} #entry is str(point)+str(obj): (previous state, best cost to that state)
-    savevis = []
+    pq = PriorityQueue()
     start = maze.getStart()
-    done = False
-    sol = []
-    while not done:
-        curr = heapq.heappop(heap)
-        if curr.point not in savevis:
-            savevis.append(curr.point)
-        for neighbor in maze.getNeighbors(curr.point[0],curr.point[1]):
-            n = gstate(neighbor,curr.obj.copy(),curr.cost+1)
-            if neighbor in n.obj:
-                n.obj.remove(neighbor)
-            skey = str(n.point)+str(n.obj)
-            if skey in visited.keys():
-                if visited[skey][1] > n.cost:
-                    visited[skey] = (curr,n.cost)
-                if visited[skey][1] <= n.cost:
-                    continue
-            else:
-                visited[skey] = (curr,n.cost)
-            if len(n.obj) == 0:
-                sol = getPath(maze.getStart(),n,visited, len(maze.getObjectives()))
-                done = True
-            heapq.heappush(heap,n)
-    return sol, len(savevis)
+    goal = maze.getObjectives()[0]
+    pq.put((get_manhattan(start, goal), start, (-1, -1)))
+    visited = {start: (-1, -1)}
+    states_seen = 0
+    path = list()
+    latest = ()
+    while not pq.empty():
+        current = pq.get()
+        states_seen += 1
+        if current[1] == goal:
+            latest = current[1]
+            break
+        else:
+            for neighbor in maze.getNeighbors(current[1][0], current[1][1]):
+                if neighbor not in visited:
+                    visited[neighbor] = current[1]
+                    pq.put((get_manhattan(neighbor, goal), neighbor, current[1]))
+    while latest != (-1, -1):
+        path.append(latest)
+        latest = visited[latest]
+    return path[::-1], states_seen
 
 def manhattan(p1,p2):
     return abs(p1[0]-p2[0])+abs(p1[1]-p2[1])
