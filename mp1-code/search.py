@@ -267,5 +267,5 @@ def astar(maze):
                 sol = getPath(maze.getStart(),n,visited)
                 done = True
             heapq.heappush(heap,n)
-    print(total)
+    print(hit)
     return sol, len(savevis)
