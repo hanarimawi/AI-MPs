@@ -50,21 +50,20 @@ def greedy(maze):
     start = maze.getStart()
     goal = maze.getObjectives()[0]
     pq.put((get_manhattan(start, goal), start, (-1, -1)))
-    visited = {}
+    visited = {start: (-1, -1)}
     states_seen = 0
     path = list()
     latest = ()
     while not pq.empty():
         current = pq.get()
         states_seen += 1
-        visited[current[1]] = current[2]
         if current[1] == goal:
             latest = current[1]
             break
         else:
             for neighbor in maze.getNeighbors(current[1][0], current[1][1]):
                 if neighbor not in visited:
-                    visited[neighbor[1]] = current[2]
+                    visited[neighbor] = current[1]
                     pq.put((get_manhattan(neighbor, goal), neighbor, current[1]))
     while latest != (-1, -1):
         path.append(latest)
