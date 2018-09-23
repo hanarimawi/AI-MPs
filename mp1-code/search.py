@@ -18,6 +18,7 @@ files and classes when code is run, so be careful to not modify anything else.
 # Number of states explored should be a number.
 # maze is a Maze object based on the maze from the file specified by input filename
 # searchMethod is the search method specified by --method flag (bfs,dfs,greedy,astar)
+from queue import PriorityQueue
 
 def search(maze, searchMethod):    
     return {
@@ -27,6 +28,10 @@ def search(maze, searchMethod):
         "astar": astar,
     }.get(searchMethod)(maze)
    
+
+def get_manhattan(currentState, goalState):
+    return abs(currentState[0] - goalState[0]) + abs(currentState[1] - goalState[1])
+
 
 def bfs(maze):
     # 
@@ -41,8 +46,30 @@ def dfs(maze):
 
 def greedy(maze):
     # TODO: Write your code here
-    # return path, num_states_explored
-    return [], 0
+    pq = PriorityQueue()
+    start = maze.getStart()
+    goal = maze.getObjectives()[0]
+    pq.put((get_manhattan(start, goal), start, (-1, -1)))
+    visited = {}
+    states_seen = 0
+    path = list()
+    latest = ()
+    while not pq.empty():
+        current = pq.get()
+        states_seen += 1
+        visited[current[1]] = current[2]
+        if current[1] == goal:
+            latest = current[1]
+            break
+        else:
+            for neighbor in maze.getNeighbors(current[1][0], current[1][1]):
+                if neighbor not in visited:
+                    visited[neighbor[1]] = current[2]
+                    pq.put((get_manhattan(neighbor, goal), neighbor, current[1]))
+    while latest != (-1, -1):
+        path.append(latest)
+        latest = visited[latest]
+    return path[::-1], states_seen
 
 
 def astar(maze):
