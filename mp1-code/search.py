@@ -88,12 +88,12 @@ def dfs(maze):
         curr = stack.pop()
 
         if curr.p not in savevis:
-          savevis.append(curr.p)
+          savevis.append(curr.point)
 
         #process each neighbor and check if we've reached the goal
-        for neighbor in maze.getNeighbors(curr.p[0],curr.p[1]):
+        for neighbor in maze.getNeighbors(curr.point[0],curr.point[1]):
             if maze.isValidMove(neighbor[0],neighbor[1]):
-                n = state(neighbor,curr.obj.copy(),curr.c+1)
+                n = state(neighbor,curr.obj.copy(),curr.cost+1)
                 if neighbor in n.obj:
                     n.obj.remove(neighbor)
                 skey = str(n.point)+str(n.obj)
