@@ -32,11 +32,11 @@ def search(maze, searchMethod):
     }.get(searchMethod)(maze)
 
 #helper function to backtrack a path from the goal state
-def getPath(start, state, visited):
-    if state.point == start:
+def getPath(start, state, visited,objlen):
+    if state.point == start and len(state.obj) ==objlen:
       return [start]
     else:
-      return getPath(start,visited[str(state.point)+str(state.obj)][0],visited) + [state.point]
+      return getPath(start,visited[str(state.point)+str(state.obj)][0],visited,objlen) + [state.point]
 
 def bfs(maze):
     # TODO: Write your code here
@@ -243,11 +243,6 @@ def astar(maze):
             print('search failed')
             done = True
         curr = heapq.heappop(heap)
-        skey = str(curr.point) + str(curr.point)
-        if skey in visited.keys():
-            if visited[skey][1] <= curr.cost:
-                continue
-        total+=1
         if curr.point not in savevis:
             savevis.append(curr.point)
         for neighbor in maze.getNeighbors(curr.point[0],curr.point[1]):
@@ -264,7 +259,7 @@ def astar(maze):
             else:
                 visited[skey] = (curr,n.cost)
             if len(n.obj) == 0:
-                sol = getPath(maze.getStart(),n,visited)
+                sol = getPath(maze.getStart(),n,visited, len(maze.getObjectives()))
                 done = True
             heapq.heappush(heap,n)
     print(hit)
