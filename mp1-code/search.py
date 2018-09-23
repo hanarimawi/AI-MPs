@@ -32,6 +32,9 @@ def search(maze, searchMethod):
         "astar": astar,
     }.get(searchMethod)(maze)
 
+def get_manhattan(currentState, goalState):
+    return abs(currentState[0] - goalState[0]) + abs(currentState[1] - goalState[1])
+
 #helper function to backtrack a path from the goal state
 def getPath(start, state, visited, objlen):
     if state.point == start and len(state.obj) ==objlen:
