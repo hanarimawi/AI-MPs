@@ -74,7 +74,6 @@ def bfs(maze):
                 sol = getPath(maze.getStart(),n,visited, len(maze.getObjectives()))
                 done = True
             queue.insert(0,n)
-    print(total)
     return sol, len(savevis)
 
 
@@ -254,7 +253,6 @@ def astar(maze):
     heap = [state(maze.getStart(),maze.getObjectives(),h(maze.getStart(),maze.getObjectives(),0))]
     heapq.heapify(heap)
     objs = maze.getObjectives()
-    print("objs ", len(objs))
     visited = {} #entry is str(point)+str(obj): (previous state, best cost to that state)
     savevis = [] #comprehensive list of visited maze locations by all paths
     start = maze.getStart()
@@ -264,7 +262,6 @@ def astar(maze):
     hit = []
     while not done:
         if len(heap) == 0:
-            print('search failed')
             done = True
         curr = heapq.heappop(heap)
         if curr.point not in savevis:
@@ -286,5 +283,4 @@ def astar(maze):
                 sol = getPath(maze.getStart(), n, visited, len(maze.getObjectives()))
                 done = True
             heapq.heappush(heap,n)
-    print(hit)
     return sol, len(savevis)
