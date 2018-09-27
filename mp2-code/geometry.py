@@ -68,6 +68,12 @@ def doesArmTouchGoals(armEnd, goals):
         Return:
             True if touched. False it not.
     """
+    for goal in goals:
+            a = armEnd[0] - goal[0]
+            b = armEnd[1] - goal[1]
+            c = math.sqrt((a**2 + b**2))
+            if goal[2] > c:
+                return True
     return False
 
 
