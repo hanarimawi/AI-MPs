@@ -49,6 +49,7 @@ def doesArmTouchObstacles(armPos, obstacles):
     pos:  [((150, 200), (150.0, 100.0)), ((150.0, 100.0), (106.69872981077808, 75.0))] 
     obs:  [(125, 70, 10),(90, 90, 10), (165, 30, 10), (185, 60, 10)]
     """    
+    #check if tick touches
     for obstacle in obstacles:
         for pos in armPos:
             a = pos[1][0] - obstacle[0]
@@ -56,6 +57,14 @@ def doesArmTouchObstacles(armPos, obstacles):
             c = math.sqrt((a**2 + b**2))
             if obstacle[2] > c:
                 return True
+    #check if arm touches
+    for obstacle in obstacles:
+        for pos in armPos:
+            if (pos[1][0] < obstacle[0] and pos[0][0] > obstacle[0]) or (pos[1][0] > obstacle[0] and pos[0][0] < obstacle[0]):
+                m = ( pos[0][1] - pos[1][1] ) / ( pos[0][0] - pos[1][0] )
+                for x in range()
+                # y = mx + b
+                #generate a line?
     return False
 
 def doesArmTouchGoals(armEnd, goals):
@@ -86,5 +95,17 @@ def isArmWithinWindow(armPos, window):
 
         Return:
             True if all parts are in the window. False it not.
+
+    Ex:
+    pos:  [((150, 200), (150.0, 100.0)), ((150.0, 100.0), (106.69872981077808, 75.0))] 
     """
+    for pos in armPos:
+        if pos[0][0] < 0 or pos[0][0] > window[0]:
+            return False
+        if pos[0][1] < 0 or pos[0][1] > window[1]:
+            return False
+        if pos[1][0] < 0 or pos[1][0] > window[0]:
+            return False
+        if pos[1][1] < 0 or pos[1][1] > window[1]:
+            return False
     return True
