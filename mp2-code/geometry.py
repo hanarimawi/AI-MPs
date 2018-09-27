@@ -32,7 +32,7 @@ def computeCoordinate(start, length, angle):
     c = length
     b_y = (c * math.sin(math.radians(B))) / math.sin(math.radians(C))
     a_x = (c * math.sin(math.radians(A))) / math.sin(math.radians(C))
-    return (start[0] + a_x, start[1] + b_y)
+    return (start[0] + a_x, start[1] - b_y)
     pass
 
 def doesArmTouchObstacles(armPos, obstacles):
@@ -45,6 +45,17 @@ def doesArmTouchObstacles(armPos, obstacles):
         Return:
             True if touched. False it not.
     """    
+    # for obstacle in obstacles:
+    #     max_left = obstacle[0] - obstacle[2]
+    #     max_right = obstacle[0] + obstacle[2]
+    #     max_bottom = obstacle[0] + obstacle[2]
+    #     max_top = obstacle[0] - obstacle[2]
+    #     for pos in armPos:
+    #         if pos[0] >= max_left and pos[0] <= max_right:
+    #             return False 
+    #         if pos[1] >= max_top and pos[1] <= max_bottom:
+    #             return False
+
     return False
 
 def doesArmTouchGoals(armEnd, goals):
