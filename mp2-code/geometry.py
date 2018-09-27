@@ -44,18 +44,18 @@ def doesArmTouchObstacles(armPos, obstacles):
 
         Return:
             True if touched. False it not.
-    """    
-    # for obstacle in obstacles:
-    #     max_left = obstacle[0] - obstacle[2]
-    #     max_right = obstacle[0] + obstacle[2]
-    #     max_bottom = obstacle[0] + obstacle[2]
-    #     max_top = obstacle[0] - obstacle[2]
-    #     for pos in armPos:
-    #         if pos[0] >= max_left and pos[0] <= max_right:
-    #             return False 
-    #         if pos[1] >= max_top and pos[1] <= max_bottom:
-    #             return False
 
+    Ex:
+    pos:  [((150, 200), (150.0, 100.0)), ((150.0, 100.0), (106.69872981077808, 75.0))] 
+    obs:  [(125, 70, 10),(90, 90, 10), (165, 30, 10), (185, 60, 10)]
+    """    
+    for obstacle in obstacles:
+        for pos in armPos:
+            a = pos[1][0] - obstacle[0]
+            b = pos[1][1] - obstacle[1]
+            c = math.sqrt((a**2 + b**2))
+            if obstacle[2] > c:
+                return True
     return False
 
 def doesArmTouchGoals(armEnd, goals):
