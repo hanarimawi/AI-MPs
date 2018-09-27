@@ -1,3 +1,5 @@
+into.opy
+Commented:
 # search.py
 # ---------------
 # Licensing Information:  You are free to use or extend this projects for
@@ -19,9 +21,11 @@ files and classes when code is run, so be careful to not modify anything else.
 # maze is a Maze object based on the maze from the file specified by input filename
 # searchMethod is the search method specified by --method flag (bfs,dfs,greedy,astar)
 import heapq
-from queue import PriorityQueue
 
 def search(maze, searchMethod):
+    print(maze.getStart())
+    print(maze.getDimensions())
+    print(maze.getObjectives())
     return {
         "bfs": bfs,
         "dfs": dfs,
@@ -29,13 +33,12 @@ def search(maze, searchMethod):
         "astar": astar,
     }.get(searchMethod)(maze)
 
-
 #helper function to backtrack a path from the goal state
-def getPath(start, state, visited, objlen):
-    if state.point == start and len(state.obj) ==objlen:
+def getPath(start, state, visited):
+    if state.point == start:
       return [start]
     else:
-      return getPath(start,visited[str(state.point)+str(state.obj)][0],visited,objlen) + [state.point]
+      return getPath(start,visited[str(state.point)+str(state.obj)][0],visited) + [state.point]
 
 def bfs(maze):
     # TODO: Write your code here
@@ -54,7 +57,7 @@ def bfs(maze):
         if curr.point not in savevis:
           savevis.append(curr.point)
 
-        #process each neighbor and check if we've reached the goal checkcheck
+        #process each neighbor and check if we've reached the goal
         for neighbor in maze.getNeighbors(curr.point[0],curr.point[1]):
             n = state(neighbor,curr.obj.copy(),curr.cost+1)
             if neighbor in n.obj:
@@ -68,45 +71,17 @@ def bfs(maze):
             else:
                 visited[skey] = (curr,n.cost)
             if len(n.obj) == 0:
-                sol = getPath(maze.getStart(),n,visited, len(maze.getObjectives()))
+                sol = getPath(maze.getStart(),n,visited)
                 done = True
             queue.insert(0,n)
+    print(total)
     return sol, len(savevis)
 
 
 def dfs(maze):
-    stack = [state(maze.getStart(),maze.getObjectives(),0)]  #holds frontier
-    objs = maze.getObjectives()
-    visited = {} #entry is str(point)+str(obj): (previous state, best cost to that state)
-    savevis = [] #comprehensive list of visited maze locations
-    start = maze.getStart()
-    done = False
-    while not done:
-
-        curr = stack.pop(0)
-
-        if curr.point not in savevis:
-          savevis.append(curr.point)
-
-        #process each neighbor and check if we've reached the goal
-        for neighbor in maze.getNeighbors(curr.point[0],curr.point[1]):
-            if maze.isValidMove(neighbor[0],neighbor[1]):
-                n = state(neighbor,curr.obj.copy(),curr.cost+1)
-                if neighbor in n.obj:
-                    n.obj.remove(neighbor)
-                skey = str(n.point)+str(n.obj)
-                if skey in visited.keys():
-                    if visited[skey][1] > n.cost:
-                        visited[skey] = (curr,n.cost)
-                    if visited[skey][1] <= n.cost:
-                        continue
-                else:
-                    visited[skey] = (curr,n.cost)
-                if len(n.obj) == 0:
-                    sol = getPath(maze.getStart(),n,visited, len(maze.getObjectives()))
-                    done = True
-                stack.insert(0, n)#.append(n)
-    return sol, len(savevis)
+    # TODO: Write your code here
+    # return path, num_states_explored
+    return [], 0
 
 class gstate:
     def __init__(self,point,obj,cost):
@@ -122,29 +97,36 @@ class gstate:
 
 
 def greedy(maze):
-    pq = PriorityQueue()
+    # TODO: Write your code here
+    heap = [gstate(maze.getStart(),maze.getObjectives(),h(maze.getStart(),maze.getObjectives(),0))]
+    heapq.heapify(heap)
+    objs = maze.getObjectives()
+    visited = {} #entry is str(point)+str(obj): (previous state, best cost to that state)
+    savevis = []
     start = maze.getStart()
-    goal = maze.getObjectives()[0]
-    pq.put((manhattan(start, goal), start))
-    visited = {start: (-1, -1)}
-    states_seen = 0
-    path = list()
-    latest = ()
-    while not pq.empty():
-        current = pq.get()
-        states_seen += 1
-        if current[1] == goal:
-            latest = current[1]
-            break
-        else:
-            for neighbor in maze.getNeighbors(current[1][0], current[1][1]):
-                if neighbor not in visited:
-                    visited[neighbor] = current[1]
-                    pq.put((manhattan(neighbor, goal), neighbor))
-    while latest != (-1, -1):
-        path.append(latest)
-        latest = visited[latest]
-    return path[::-1], states_seen
+    done = False
+    sol = []
+    while not done:
+        curr = heapq.heappop(heap)
+        if curr.point not in savevis:
+            savevis.append(curr.point)
+        for neighbor in maze.getNeighbors(curr.point[0],curr.point[1]):
+            n = gstate(neighbor,curr.obj.copy(),curr.cost+1)
+            if neighbor in n.obj:
+                n.obj.remove(neighbor)
+            skey = str(n.point)+str(n.obj)
+            if skey in visited.keys():
+                if visited[skey][1] > n.cost:
+                    visited[skey] = (curr,n.cost)
+                if visited[skey][1] <= n.cost:
+                    continue
+            else:
+                visited[skey] = (curr,n.cost)
+            if len(n.obj) == 0:
+                sol = getPath(maze.getStart(),n,visited)
+                done = True
+            heapq.heappush(heap,n)
+    return sol, len(savevis)
 
 def manhattan(p1,p2):
     return abs(p1[0]-p2[0])+abs(p1[1]-p2[1])
@@ -180,7 +162,7 @@ class state:
 def astar(maze):
     # TODO: Write your code here
     dlen = {}
-    def permute(objs):
+    def permute(objs): #permute and djikstra are MST
         if len(objs) == 1:
             return [[objs[0]], []]
         else:
@@ -202,11 +184,11 @@ def astar(maze):
         return dlen[str(obj)] + min(d)
 
     class state:
-        def __init__(self,point,obj,cost):
+        def __init__(self,point,obj,cost): #point, remaining objectives, and cost so far
             self.point = point
             self.obj= obj
             self.cost = cost
-        def __lt__(self, other):
+        def __lt__(self, other): #to work with heaps
             return self.cost + h(self.point,self.obj,self.cost) < other.cost + h(other.point,other.obj,other.cost)
 
     def djikstra(p):
@@ -246,10 +228,11 @@ def astar(maze):
         temp.sort()
         dlen[str(temp)] = djikstra(p.copy())
 
-
+    #starts with start state, the objectives are original, h
     heap = [state(maze.getStart(),maze.getObjectives(),h(maze.getStart(),maze.getObjectives(),0))]
     heapq.heapify(heap)
     objs = maze.getObjectives()
+    print("objs ", len(objs))
     visited = {} #entry is str(point)+str(obj): (previous state, best cost to that state)
     savevis = [] #comprehensive list of visited maze locations by all paths
     start = maze.getStart()
@@ -259,25 +242,33 @@ def astar(maze):
     hit = []
     while not done:
         if len(heap) == 0:
-            done = True
+            print('search failed')
+            done = True #bookkeeping
         curr = heapq.heappop(heap)
+        skey = str(curr.point) + str(curr.point) 
+        if skey in visited.keys():
+            if visited[skey][1] <= curr.cost:
+                continue
+        total+=1 #bookkeeping
         if curr.point not in savevis:
             savevis.append(curr.point)
         for neighbor in maze.getNeighbors(curr.point[0],curr.point[1]):
             n = state(neighbor,curr.obj.copy(),curr.cost+1)
-            if neighbor in n.obj:
+            if neighbor in n.obj: #if that neighbor is a pellet,
                 hit.append(neighbor)
-                n.obj.remove(neighbor)
-            skey = str(n.point)+str(n.obj)
-            if skey in visited.keys():
-                if visited[skey][1] > n.cost:
+                n.obj.remove(neighbor) #remove the pellet from the objectives of that state
+            skey = str(n.point)+str(n.obj) #key for dictionary
+            if skey in visited.keys():     #backtrack to find path at the end, this is the way of keeping track of the previous state with the lowest cost
+                if visited[skey][1] > n.cost: #if its the worst state, skip
                     visited[skey] = (curr,n.cost)
                 if visited[skey][1] <= n.cost:
                     continue
             else:
-                visited[skey] = (curr,n.cost)
+                visited[skey] = (curr,n.cost) #if state has reached all of teh objectives, backtrack
             if len(n.obj) == 0:
-                sol = getPath(maze.getStart(), n, visited, len(maze.getObjectives()))
+                sol = getPath(maze.getStart(),n,visited) #backtrack
                 done = True
             heapq.heappush(heap,n)
+    print(hit)
     return sol, len(savevis)
+
