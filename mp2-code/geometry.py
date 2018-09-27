@@ -26,6 +26,13 @@ def computeCoordinate(start, length, angle):
         Return:
             End position of the arm link, (x-coordinate, y-coordinate)
     """
+    B = angle
+    A = 180 - 90 - B
+    C = 90
+    c = length
+    b_y = (c * math.sin(math.radians(B))) / math.sin(math.radians(C))
+    a_x = (c * math.sin(math.radians(A))) / math.sin(math.radians(C))
+    return (start[0] + a_x, start[1] + b_y)
     pass
 
 def doesArmTouchObstacles(armPos, obstacles):
