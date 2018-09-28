@@ -45,9 +45,9 @@ class Maze:
             print("Maze has no start")            
             raise SystemExit
 
-        if not self.__objective:
-            print("Maze has no objectives")
-            raise SystemExit
+        # if not self.__objective:
+        #     print("Maze has no objectives")
+        #     raise SystemExit
 
     def getChar(self, alpha, beta):
         # Get character for the given alpha and beta position
