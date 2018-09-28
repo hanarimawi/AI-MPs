@@ -15,6 +15,7 @@ import math
 import numpy as np
 from const import *
 
+
 def computeCoordinate(start, length, angle):
     """Compute the end cooridinate based on the given start position, length and angle.
 
@@ -26,14 +27,10 @@ def computeCoordinate(start, length, angle):
         Return:
             End position of the arm link, (x-coordinate, y-coordinate)
     """
-    B = angle
-    A = 180 - 90 - B
-    C = 90
-    c = length
-    b_y = (c * math.sin(math.radians(B))) / math.sin(math.radians(C))
-    a_x = (c * math.sin(math.radians(A))) / math.sin(math.radians(C))
-    return (start[0] + a_x, start[1] - b_y)
-    pass
+    adjacent = length * math.cos(math.radians(angle))
+    opposite = length * math.sin(math.radians(angle))
+    return start[0] + adjacent, start[1] - opposite
+
 
 def doesArmTouchObstacles(armPos, obstacles):
     """Determine whether the given arm links touch obstacles
@@ -49,23 +46,16 @@ def doesArmTouchObstacles(armPos, obstacles):
     pos:  [((150, 200), (150.0, 100.0)), ((150.0, 100.0), (106.69872981077808, 75.0))] 
     obs:  [(125, 70, 10),(90, 90, 10), (165, 30, 10), (185, 60, 10)]
     """    
-    #check if tick touches
-    for obstacle in obstacles:
-        for pos in armPos:
-            a = pos[1][0] - obstacle[0]
-            b = pos[1][1] - obstacle[1]
-            c = math.sqrt((a**2 + b**2))
-            if obstacle[2] > c:
+    # check if tick touches
+    for arm_tick in armPos:
+        for obstacle in obstacles:
+            a = arm_tick[0][1] - arm_tick[1][1]
+            b = arm_tick[1][0] - arm_tick[0][0]
+            c = arm_tick[0][1]*(arm_tick[0][0] - arm_tick[1][0]) + arm_tick[0][0]*(arm_tick[1][1] - arm_tick[0][1])
+            if abs(a*obstacle[0] + b*obstacle[1] + c)/math.sqrt(a**2 + b**2) <= obstacle[2]:
                 return True
-    #check if arm touches
-    for obstacle in obstacles:
-        for pos in armPos:
-            if (pos[1][0] < obstacle[0] and pos[0][0] > obstacle[0]) or (pos[1][0] > obstacle[0] and pos[0][0] < obstacle[0]):
-                m = ( pos[0][1] - pos[1][1] ) / ( pos[0][0] - pos[1][0] )
-                for x in range()
-                # y = mx + b
-                #generate a line?
     return False
+
 
 def doesArmTouchGoals(armEnd, goals):
     """Determine whether the given arm links touch goals
@@ -81,7 +71,7 @@ def doesArmTouchGoals(armEnd, goals):
             a = armEnd[0] - goal[0]
             b = armEnd[1] - goal[1]
             c = math.sqrt((a**2 + b**2))
-            if goal[2] > c:
+            if goal[2] >= c:
                 return True
     return False
 
