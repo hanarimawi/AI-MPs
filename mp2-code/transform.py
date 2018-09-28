@@ -34,5 +34,13 @@ def transformToMaze(arm, goals, obstacles, window, granularity):
             Maze: the maze instance generated based on input arguments.
 
     """
-    
+    arm_limits = arm.getArmLimit()
+    rows = ((arm_limits[0][1] - arm_limits[0][0])/granularity) + 1
+    cols = ((arm_limits[1][1] - arm_limits[1][0])/granularity) + 1
+    maze = [[' ']*cols]*rows
+    alpha_min = arm_limits[0][0]
+    for r_ind in maze:
+        beta_min = arm_limits[1][0]
+        for c_ind in maze[0]:
+
     pass
