@@ -55,16 +55,31 @@ def doesArmTouchObstacles(armPos, obstacles):
             a = pos[1][0] - obstacle[0]
             b = pos[1][1] - obstacle[1]
             c = math.sqrt((a**2 + b**2))
-            if obstacle[2] > c:
+            if obstacle[2] >= c:
                 return True
     #check if arm touches
     for obstacle in obstacles:
         for pos in armPos:
             if (pos[1][0] < obstacle[0] and pos[0][0] > obstacle[0]) or (pos[1][0] > obstacle[0] and pos[0][0] < obstacle[0]):
-                m = ( pos[0][1] - pos[1][1] ) / ( pos[0][0] - pos[1][0] )
-                for x in range()
-                # y = mx + b
-                #generate a line?
+                left =  pos[0]
+                right = pos[1]
+                if pos[1][0] > pos[0][1]:
+                    left = pos[1]
+                    right = pos[0]
+                m = ( right[1] - left[1] ) / ( right[0] - left[0] )
+                arm_line = []
+                b = left[1]
+                for x in range(int(left[0]), int(right[0])):
+                    y = (m * x) + b
+                    arm_line.append((x,y))
+                for obstacle in obstacles:
+                    for pos in arm_line:
+                        a = pos[0] - obstacle[0]
+                        b = pos[1] - obstacle[1]
+                        c = math.sqrt((a**2 + b**2))
+                        if obstacle[2] > c:
+                            return True
+
     return False
 
 def doesArmTouchGoals(armEnd, goals):
