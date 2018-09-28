@@ -77,7 +77,6 @@ def doesArmTouchObstacles(armPos, obstacles):
                 d2 = getD(arm_2, obs)
                 min_d = min(d1, d2)
                 if min_d < obstacle[2]:
-                    print("AYYYY")
                     return True 
             elif dist <= obstacle[2]:
                 print("dist: "  , dist) # " obstacle: ( ", obstacle[0], " , ", obstacle[1], " ) "
