@@ -70,7 +70,7 @@ def doesArmTouchObstacles(armPos, obstacles):
             obs = (obstacle[0], y)
             arm_2 = (x_2, y_2)
             arm_1 = (x_1, y_1)
-            print("dist: ", dist)
+            # print("dist: ", dist)
             max_d = max(getD(arm_1, obs), getD(arm_2, obs))
             if getSlope(arm_1,arm_2) == getSlope(arm_2, obs) or max_d > getD(arm_1, arm_2):
                 d1 = getD(arm_1, obs)
@@ -79,7 +79,7 @@ def doesArmTouchObstacles(armPos, obstacles):
                 if min_d < obstacle[2]:
                     return True 
             elif dist <= obstacle[2]:
-                print("dist: "  , dist) # " obstacle: ( ", obstacle[0], " , ", obstacle[1], " ) "
+                # print("dist: "  , dist) # " obstacle: ( ", obstacle[0], " , ", obstacle[1], " ) "
                 return True
     return False
 
@@ -95,11 +95,11 @@ def doesArmTouchGoals(armEnd, goals):
             True if touched. False it not.
     """
     for goal in goals:
-            a = armEnd[0] - goal[0]
-            b = armEnd[1] - goal[1]
-            c = math.sqrt((a**2 + b**2))
-            if goal[2] >= c:
-                return True
+        a = armEnd[0] - goal[0]
+        b = armEnd[1] - goal[1]
+        c = math.sqrt((a**2 + b**2))
+        if goal[2] >= c:
+            return True
     return False
 
 

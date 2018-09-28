@@ -35,12 +35,25 @@ def transformToMaze(arm, goals, obstacles, window, granularity):
 
     """
     arm_limits = arm.getArmLimit()
-    rows = ((arm_limits[0][1] - arm_limits[0][0])/granularity) + 1
-    cols = ((arm_limits[1][1] - arm_limits[1][0])/granularity) + 1
-    maze = [[' ']*cols]*rows
+    rows = int(((arm_limits[0][1] - arm_limits[0][0])/granularity) + 1)
+    cols = int(((arm_limits[1][1] - arm_limits[1][0])/granularity) + 1 )
+    maze = [[SPACE_CHAR]* cols for i in range(rows)]
     alpha_min = arm_limits[0][0]
-    for r_ind in maze:
+    start_pos = arm.getArmAngle()
+    for r_ind in range(rows): #alpha
         beta_min = arm_limits[1][0]
-        for c_ind in maze[0]:
-
-    pass
+        for c_ind in range(cols): #beta
+            if r_ind == 38 and c_ind == 92:
+                print("AYYY")
+            arm.setArmAngle((alpha_min, beta_min))
+            arm_positions = arm.getArmPos()
+            if not isArmWithinWindow(arm_positions, window):
+                maze[r_ind][c_ind] = WALL_CHAR
+            elif doesArmTouchObstacles(arm_positions, obstacles):
+                maze[r_ind][c_ind] = WALL_CHAR
+            elif doesArmTouchGoals(arm.getEnd(), goals):
+                maze[r_ind][c_ind] = OBJECTIVE_CHAR
+            beta_min += granularity
+        alpha_min += granularity
+    maze[start_pos[0]][start_pos[1]] = START_CHAR
+    return Maze(maze, [arm_limits[0][0], arm_limits[1][0]], granularity)
