@@ -53,7 +53,7 @@ def transformToMaze(arm, goals, obstacles, window, granularity):
 
         for c_ind in range(cols):  # beta
             arm.setArmAngle((alpha_min, beta_min))
-            arm_positions = arm.getArmPos()
+            arm_positions = [arm.getArmPos()[1]]
             if not isArmWithinWindow(arm_positions, window):
                 maze[r_ind][c_ind] = WALL_CHAR
             elif doesArmTouchObstacles(arm_positions, obstacles):
