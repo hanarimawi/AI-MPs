@@ -221,7 +221,12 @@ def astar(maze):
 
 
     perms = permute(maze.getObjectives())
+    print(len(perms))
+    count = 0
     for p in perms:
+        count+=1
+        if count %10000 == 0:
+            print(count)
         temp = p.copy()
         temp.sort()
         dlen[str(temp)] = djikstra(p.copy())
@@ -238,13 +243,21 @@ def astar(maze):
     sol = []
     total = 0
     hit = []
+    print('starting search')
     while not done:
         if len(heap) == 0:
             print('search failed')
             done = True
         curr = heapq.heappop(heap)
-        if curr.point not in savevis:
-            savevis.append(curr.point)
+        curr.obj.sort()
+        skey = str(curr.point) + str(curr.obj)
+        if skey in visited.keys():
+            if visited[skey][1] < curr.cost:
+                continue
+
+        total+=1
+        if skey not in savevis:
+            savevis.append(skey)
         for neighbor in maze.getNeighbors(curr.point[0],curr.point[1]):
             n = state(neighbor,curr.obj.copy(),curr.cost+1)
             if neighbor in n.obj:
