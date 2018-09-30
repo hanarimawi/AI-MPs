@@ -199,7 +199,7 @@ def astar(maze):
         obj.sort()
         if len(d) == 0:
             return dlen[str(obj)]
-        return dlen[str(obj)] + min(d)
+        return min(d)
 
     class state:
         def __init__(self,point,obj,cost):
@@ -239,14 +239,13 @@ def astar(maze):
                 cost+=e[0]
         return cost
 
-
+    '''
     perms = permute(maze.getObjectives())
     for p in perms:
         temp = p.copy()
         temp.sort()
         dlen[str(temp)] = djikstra(p.copy())
-
-
+        '''
     heap = [state(maze.getStart(),maze.getObjectives(),h(maze.getStart(),maze.getObjectives(),0))]
     heapq.heapify(heap)
     objs = maze.getObjectives()
@@ -257,6 +256,7 @@ def astar(maze):
     sol = []
     total = 0
     hit = []
+
     while not done:
         if len(heap) == 0:
             done = True
@@ -268,6 +268,7 @@ def astar(maze):
             if neighbor in n.obj:
                 hit.append(neighbor)
                 n.obj.remove(neighbor)
+
             skey = str(n.point)+str(n.obj)
             if skey in visited.keys():
                 if visited[skey][1] > n.cost:
