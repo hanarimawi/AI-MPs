@@ -1,5 +1,5 @@
 import numpy as np
-
+from copy import deepcopy
 
 def solve(constraints):
     """
@@ -100,17 +100,30 @@ def solve(constraints):
 		   [0, 0, 0, 1, 1],
 		   [0, 0, 1, 0, 1]])
 """
+def is_consecutive(col, quantity):
+	space = 0
+	quantity_count = 0
+	pos = 0
+	while pos < len(col) and col[pos] == space:
+		pos += 1
+	while pos < len(col) and col[pos] != space:
+		quantity_count += 1
+		pos += 1
+	if quantity_count != quantity:
+		return False
+	return True
+
 def row_checker(cols, constraints):
 	"""
 	assume cols is 2d array and constraints is list([[1, 1], [1, 1], [1, 1]])
 	return whether the columns are viable given the row constraints
 	NEEDS CONSECUTIVE CHEKKECEKKEKKCKEKCECCECKC
 	"""
+	constraints = deepcopy(constraints)
 	space = 0
 	num_cols = len(cols)
 	row_pos = 0
 	for row in constraints:
-		print(row)
 		if len(row) == 1:
 			constraint = row[0]
 			quantity = constraint[0]
@@ -121,7 +134,7 @@ def row_checker(cols, constraints):
 					quantity_count += 1
 				if quantity_count > quantity:
 					return False
-			if quantity_count != quantity:
+			if quantity_count != quantity or not is_consecutive([ cols[row_pos][y] for y in range(num_cols) ], quantity):
 				return False 
 		else:
 			for constraint in row:
@@ -152,7 +165,6 @@ def partial_row_checker(cols, constraints):
 	"""
 	assume cols is 2d array and constraints is list([[1, 1], [1, 1], [1, 1]])
 	return whether the columns are viable given the row constraints
-	NEEDS CONSECUTIVE CHEKKECEKKEKKCKEKCECCECKC
 	"""
 	space = 0
 	num_cols = len(cols)
@@ -164,8 +176,9 @@ def partial_row_checker(cols, constraints):
 			quantity += constraint[0]
 		quantity_count = 0
 		for col_pos in range(num_cols):
-			if cols[row_pos][col_pos] == val:
-				quantity_count += 1
+			if len(cols[col_pos]) != 0:
+				if cols[row_pos][col_pos] == val:
+					quantity_count += 1
 		if quantity_count > quantity:
 			return False
 		row_pos += 1
@@ -183,5 +196,5 @@ constraints = [list([[4, 1]]),
 		 list([[2, 1]]), 
 		 list([[1, 1], [1, 1]])]
 
-# print(row_checker(cols, constraints))
-print(partial_row_checker(cols, constraints))
+print(row_checker(cols, constraints))
+# print(partial_row_checker(cols, constraints))
