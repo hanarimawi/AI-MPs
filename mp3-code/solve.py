@@ -1,5 +1,6 @@
 import numpy as np
-
+import pygame
+import time
 
 def isDank(col, constraint, sums):
     curr = [0,0]
@@ -97,19 +98,19 @@ def checkAss(constraints, assignment):
         row = []
         for j in range(len(assignment)):
             row.append(assignment[j][i])
-        sums = {}
+
         for l in rowCons[i]:
+            sums = {}
+            if l == []:
+                continue
             if l[1] in sums.keys():
                 sums[l[1]]+=l[0]
             else:
                 sums[l[1]]=l[0]
         if not isDank(row,rowCons[i],sums):
+            #print(row, rowCons[i])
             return False
     return True
-
-constraints =  [[[1,1],[]],[[1,1],[]]]
-arr = [[1,0],[0,0]]
-print (checkAss(constraints, arr))
 
 
 def getLcv(constraints, assignment, cols, coli):
@@ -145,8 +146,9 @@ def getLcv(constraints, assignment, cols, coli):
 def backtracking(constraints, assignment, cols):
     if [] not in assignment:
         if checkAss(constraints, assignment):
-            print(assignment)
             return assignment
+        else:
+            return None
     mcv = []
     for l in range(len(cols)):
         if assignment[l] == []:
@@ -165,6 +167,33 @@ def backtracking(constraints, assignment, cols):
                 return b
     return None
 
+def view(solution):
+    height = solution.shape[0]
+    width = solution.shape[1]
+    block_size = 20
+    offset = 32
+
+    display = pygame.display.set_mode(
+        (
+            width * block_size + 2 * offset,
+            height * block_size + 2 * offset,
+
+        ), 0, 0)
+
+    max_color = float(max(1, np.max(solution)))
+    for row in range(len(solution)):
+        for col in range(len(solution[0])):
+            shade = 255 - (solution[row,col]/max_color)*255
+            color = (shade, shade, shade)
+            rect = pygame.Rect(offset + col * block_size,
+                               offset + row * block_size,
+                               block_size,
+                               block_size
+                    )
+            pygame.draw.rect(display, color, rect)
+    pygame.display.update()
+
+    time.sleep(25)
 #send copy of cols to recursive
 def solve(constraints):
     cols = getCols(constraints)
@@ -174,7 +203,10 @@ def solve(constraints):
     for i in range(len(colCons)):
         a.append([])
 
-    return backtracking(constraints, a, cols)
+    x = backtracking(constraints, a, cols)
+    print(constraints)
+    view(np.array(x))
+    return np.array(x)
 
 
 
@@ -249,6 +281,7 @@ def solve(constraints):
 
 
     """
+
     dim0 = len(constraints[0])
     dim1 = len(constraints[1])
     return np.random.randint(2, size=(dim0, dim1))
