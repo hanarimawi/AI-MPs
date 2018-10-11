@@ -80,16 +80,6 @@ def partial_row_checker(cols, constraints):
     return True
 
 
-cols = [[0, 1, 1, 1, 1],
-        [1, 0, 1, 0, 1],
-        [1, 1, 1, 0, 1],
-        [0, 0, 0, 1, 1],
-        [0, 0, 1, 0, 1]]
-constraints = [list([[4, 1]]),
-         list([[1, 1], [1, 1], [1, 1]]),
-         list([[3, 1], [1, 1]]),
-         list([[2, 1]]),
-         list([[1, 1], [1, 1]])]
 
 def checkAss(constraints, assignment):
     rowCons = constraints[0]
@@ -144,6 +134,7 @@ def getLcv(constraints, assignment, cols, coli):
 
 
 def backtracking(constraints, assignment, cols):
+    print(assignment)
     if [] not in assignment:
         if checkAss(constraints, assignment):
             return assignment
@@ -193,19 +184,21 @@ def view(solution):
             pygame.draw.rect(display, color, rect)
     pygame.display.update()
 
-    time.sleep(25)
+    time.sleep(1)
 #send copy of cols to recursive
 def solve(constraints):
+    print(constraints)
     cols = getCols(constraints)
     colCons = constraints[1]
     rowCons = constraints[0]
     a= []
+    print(colCons)
     for i in range(len(colCons)):
         a.append([])
-
+    print("skjdn")
     x = backtracking(constraints, a, cols)
-    print(constraints)
-    view(np.array(x))
+    x = np.array(x)
+    x = np.transpose(x)
     return np.array(x)
 
 
@@ -281,7 +274,3 @@ def solve(constraints):
 
 
     """
-
-    dim0 = len(constraints[0])
-    dim1 = len(constraints[1])
-    return np.random.randint(2, size=(dim0, dim1))
