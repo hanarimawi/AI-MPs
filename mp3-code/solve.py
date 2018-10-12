@@ -70,7 +70,7 @@ def genCols(l, d):
 
 
 
-def partial_row_checker(cols, constraints):
+def partial_row_checker(cols, constraints, colCons):
     """
     assume cols is 2d array and constraints is list([[1, 1], [1, 1], [1, 1]])
     return whether the columns are viable given the row constraints
@@ -78,6 +78,7 @@ def partial_row_checker(cols, constraints):
     space = 0
     num_cols = len(cols)
     row_pos = 0
+
     for row in constraints:
         quantity = 0
         val = 1 #change later for colors
@@ -91,6 +92,47 @@ def partial_row_checker(cols, constraints):
         if quantity_count > quantity:
             return False
         row_pos += 1
+
+        #check if there are too few filled squares
+        if quantity - quantity_count > len(colCons)-len(cols) + cols.count([]):
+            return False
+
+
+
+    #checks if there's a run that is too long
+    rows = np.transpose(np.array(cols))
+    #print(rows)
+    for i in range(len(rows)):
+        row = rows[i]
+        if len(row) == 0:
+            sol = []
+
+        else:
+            curr = [0,0]
+            sol = []
+            for i in range(len(row)):
+                if row[i] == 0:
+                    if curr[0] > 0:
+                        sol.append(curr)
+                    curr = [0,0]
+                    continue
+                if curr[1] == 0:
+                    curr[1] = row[i]
+                    curr[0] = 1
+                else:
+                    curr[0]+=1
+            if row[len(row)-1] != 0:
+                sol.append(curr)
+        max = 0
+        for t in constraints[i]:
+            if t[0] > max:
+                max = t[0]
+        for x in sol:
+            if x[1] > max:
+                #return False
+                continue
+
+
     return True
 
 
@@ -145,7 +187,7 @@ def getLcv(constraints, assignment, cols, coli):
 def backtracking(constraints, assignment, cols):
     global recurses
     recurses+=1
-    if recurses%100 == 0:
+    if recurses%500 == 0:
         print(recurses)
     if [] not in assignment:
         if checkAss(constraints, assignment):
@@ -154,6 +196,7 @@ def backtracking(constraints, assignment, cols):
             return None
     mcv = []
     rowCons = constraints[0]
+    colCons = constraints[1]
     for l in range(len(cols)):
         if assignment[l] == []:
             mcv.append(len(cols[l]))
@@ -164,25 +207,11 @@ def backtracking(constraints, assignment, cols):
     for val in x:
         temp = assignment.copy()
         temp[i] = val[1]
-        if partial_row_checker(temp, rowCons):
+        if partial_row_checker(temp, rowCons, colCons):
             b = backtracking(constraints.copy(), temp.copy(), cols.copy())
             if b != None:
                 return b
-    '''
-    x = getLcv(constraints.copy(), assignment.copy(), cols[i].copy(), i)
-    if x == None:
-        return None
-    temp = assignment.copy()
-    temp[i] = x
-    b = backtracking(constraints.copy(), temp.copy(), cols.copy())
-    if b != None:
-        return b
-    else:
-        cols[i].remove(x)
-        b = backtracking(constraints.copy(),assignment.copy(),cols.copy())
-        if b!=None:
-            return b
-    '''
+
     return None
 
 
