@@ -7,7 +7,7 @@ dankTime = 0
 genColTime = 0
 checkAssTime = 0
 getLcvTime = 0
-recurses = 0
+
 def isDank(col, constraint, sums):
     x = time()
     curr = [0,0]
@@ -131,22 +131,23 @@ def getLcv(constraints, assignment, cols, coli):
             rowSums[i] += j[0]
     colSums = []
     for i in range(len(cols)):
-        count = 0
+        colSums.append(0)
         for j in range(len(cols[i])):
             if cols[i][j] == 1:
-                count+=rowSums[j]
-        colSums.append((count,cols[i]))
-    colSums.sort(reverse=True)
-    global getLcvTime
-    getLcvTime+=time()-x
-    return colSums
+                colSums[i]+=rowSums[j]
+    while True:
+        if len(colSums) == 0:
+            global getLcvTime
+            getLcvTime+=time()-x
+            return vals
+        i = colSums.index(np.max(colSums))
+        vals.append(cols[i])
+        colSums.pop(i)
+        cols.pop(i)
+
 
 
 def backtracking(constraints, assignment, cols):
-    global recurses
-    recurses+=1
-    if recurses%100 == 0:
-        print(recurses)
     if [] not in assignment:
         if checkAss(constraints, assignment):
             return assignment
@@ -163,7 +164,7 @@ def backtracking(constraints, assignment, cols):
     x = getLcv(constraints.copy(), assignment.copy(), cols[i].copy(), i)
     for val in x:
         temp = assignment.copy()
-        temp[i] = val[1]
+        temp[i] = val
         if partial_row_checker(temp, rowCons):
             b = backtracking(constraints.copy(), temp.copy(), cols.copy())
             if b != None:
