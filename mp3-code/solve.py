@@ -8,7 +8,7 @@ genColTime = 0
 checkAssTime = 0
 getLcvTime = 0
 recurses = 0
-def isValid(col, constraint, sums):
+def isValid(col, constraint):
     x = time()
     curr = [0,0]
     sol = []
@@ -40,7 +40,7 @@ def getCols(constraints):
         for l in c:
             if l[1] not in vals:
                 vals.append(l[1])
-    all = genCols(len(rowCons), vals)
+    all = genCols1(len(rowCons), vals)
     legitCols = []
     for i in range(len(colCons)):
         legitCols.append([])
@@ -51,13 +51,11 @@ def getCols(constraints):
                     sums[v] = 0
             for l in colCons[i]:
                 sums[l[1]]+=l[0]
-            if isValid(col, colCons[i], sums):
+            if isValid(col, colCons[i]):
                 legitCols[i].append(col)
     legitRows = []
-    all = genCols(len(colCons), vals)
-    #print(all)
-    #print(vals)
-    #print(rowCons)
+    all = genCols1(len(colCons), vals)
+
     for i in range(len(rowCons)):
         legitRows.append([])
         for row in all:
@@ -67,25 +65,142 @@ def getCols(constraints):
                     sums[v] = 0
             for l in rowCons[i]:
                 sums[l[1]]+=l[0]
-            if isValid(row, rowCons[i], sums):
+            if isValid(row, rowCons[i]):
                 legitRows[i].append(row)
     return legitCols, legitRows
 
-def genCols(l, d):
+def genCols1(l, d):
     if l == 1:
         return [[x] for x in d]
     if l ==0:
         return []
     else:
         half = max(1,int(l/2))
-        sub1 = genCols(l-half, d)
-        sub2 = genCols(half,d)
+        sub1 = genCols1(l-half, d)
+        sub2 = genCols1(half,d)
 
         ret = [y + x for x in sub1 for y in sub2]
         return ret
 
 
 
+
+def genSplits(slots, zeros):
+    if slots == 1:
+        return [[zeros]]
+    sol = []
+
+    for i in range(zeros+1):
+        x = genSplits(slots-1, zeros-i)
+        for l in x:
+            sol.append([i]+l)
+    return sol
+
+def genCol(constraint,length):
+    base =[]
+    for i in range(len(constraint)):
+        temp = []
+        for j in range(constraint[i][0]):
+            temp.append(1)
+        if i < len(constraint)-1:
+            temp.append(0)
+        base.append(temp)
+    cols = []
+    digits= 0
+    for l in base:
+        digits+=len(l)
+    s = genSplits(len(base)+1, length-digits)
+    for i in range(len(s)):
+        cols.append([])
+        split = s[i]
+        for j in range(len(split)):
+            cols[i] = cols[i]+ ([0]*split[j])
+            if j <len(split)-1:
+                cols[i]+=base[j]
+    return(cols)
+
+def genCols(constraints):
+    rowCons = constraints[0]
+    colCons = constraints[1]
+    cols = []
+    for i in range(len(colCons)):
+        cols.append(genCol(colCons[i], len(rowCons)))
+
+    rows = []
+    for i in range(len(rowCons)):
+        rows.append(genCol(rowCons[i], len(colCons)))
+
+    return cols, rows
+
+'''
+def genCols(constraints):
+    global genColTime
+    rowCons = constraints[0]
+    colCons = constraints[1]
+
+    rows = []
+    cols = []
+    x = []
+    for constraint in rowCons:
+        i = 0
+        for pair in constraint:
+            i+=pair[0]
+        y = time()
+        x.append(genLists(len(colCons), i))
+        genColTime+=time()-y
+    for i in range(len(x)):
+        rows.append([])
+        for row in x[i]:
+            if isValid(row, rowCons[i]):
+                rows[i].append(row)
+
+    x = []
+    for constraint in colCons:
+        i = 0
+        for pair in constraint:
+            i+=pair[0]
+        y = time()
+        x.append(genLists(len(rowCons), i))
+        genColTime+=time()-y
+
+    for i in range(len(x)):
+        cols.append([])
+        for col in x[i]:
+            if isValid(col, colCons[i]):
+                cols[i].append(col)
+    print(rowCons[0], rows[0])
+    return cols, rows
+
+def genLists(length, n):
+    #print(length,n)
+    sol = [[]]
+    if n == 0:
+        for i in range(length):
+            sol[0].append(0)
+        return sol
+    if n == length:
+        for i in range(length):
+            sol[0].append(1)
+        return sol
+    if length == 0:
+        return [[]]
+    if n > length:
+        print('genlists negative')
+    sol = []
+
+    i = int(length/2)
+    for j in range(i+1):
+        if (n-j) > (length - i) or i < 1 or j <0 or (length-i)<1 or (n-j) <0:
+            continue
+        left = genLists(i,j)
+        right = genLists(length-i,n-j)
+        for l1 in left:
+            for l2 in right:
+                if (l1+l2) not in sol:
+                    sol.append(l1+l2)
+    #print(sol)
+    return sol
+'''
 def partial_row_checker(assignment, rows):
     """
     assume cols is 2d array and constraints is list([[1, 1], [1, 1], [1, 1]])
@@ -138,7 +253,7 @@ def checkAss(constraints, assignment):
                 sums[l[1]]+=l[0]
             else:
                 sums[l[1]]=l[0]
-        if not isValid(row,rowCons[i],sums):
+        if not isValid(row,rowCons[i]):
             checkAssTime+=time()-x
             return False
     checkAssTime+=time()-x
@@ -180,13 +295,15 @@ def backtracking(constraints, assignment, cols,rows):
     mcv = []
     rowCons = constraints[0]
     colCons = constraints[1]
-
+    assigned = 0
     for l in range(len(cols)):
         if assignment[l] == []:
             mcv.append(len(cols[l]))
         else:
             mcv.append(np.inf)
-
+            assigned +=1
+    if recurses%100 == 0:
+        print(assigned)
     i = mcv.index(np.min(mcv))
 
     x = getLcv(constraints.copy(), assignment.copy(), cols[i].copy(), i)
@@ -203,9 +320,9 @@ def backtracking(constraints, assignment, cols,rows):
 
 #send copy of cols to recursive
 def solve(constraints):
-    x = time()
-    cols, rows = getCols(constraints)
-    genColTime = time() -x
+    #x = time()
+    cols, rows = genCols(constraints)
+    #genColTime = time() -x
     colCons = constraints[1]
     rowCons = constraints[0]
     a= []
@@ -217,7 +334,7 @@ def solve(constraints):
     x = backtracking(constraints, a, cols,rows)
     x = np.array(x)
     x = np.transpose(x)
-    print(validTime,genColTime,checkAssTime,getLcvTime)
+    print(dankTime,genColTime,checkAssTime,getLcvTime)
     print(x)
     return np.array(x)
 
