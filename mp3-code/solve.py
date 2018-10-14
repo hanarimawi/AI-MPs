@@ -53,7 +53,23 @@ def getCols(constraints):
                 sums[l[1]]+=l[0]
             if isDank(col, colCons[i], sums):
                 legitCols[i].append(col)
-    return legitCols
+    legitRows = []
+    all = genCols(len(colCons), vals)
+    #print(all)
+    #print(vals)
+    #print(rowCons)
+    for i in range(len(rowCons)):
+        legitRows.append([])
+        for row in all:
+            sums = {}
+            for v in vals:
+                if v > 0:
+                    sums[v] = 0
+            for l in rowCons[i]:
+                sums[l[1]]+=l[0]
+            if isDank(row, rowCons[i], sums):
+                legitRows[i].append(row)
+    return legitCols, legitRows
 
 def genCols(l, d):
     if l == 1:
@@ -70,72 +86,42 @@ def genCols(l, d):
 
 
 
-def partial_row_checker(cols, constraints, colCons):
+def partial_row_checker(assignment, rows):
     """
     assume cols is 2d array and constraints is list([[1, 1], [1, 1], [1, 1]])
     return whether the columns are viable given the row constraints
     """
-    space = 0
-    num_cols = len(cols)
-    row_pos = 0
+    for i in range(len(assignment)):
+        if assignment[i] == []:
+            assignment[i] = [-1]*len(rows)
 
-    for row in constraints:
-        quantity = 0
-        val = 1 #change later for colors
-        for constraint in row:
-            quantity += constraint[0]
-        quantity_count = 0
-        for col_pos in range(num_cols):
-            if len(cols[col_pos]) != 0:
-                if cols[col_pos][row_pos] == val:
-                    quantity_count += 1
-        if quantity_count > quantity:
-            return False
-        row_pos += 1
-
-        #check if there are too few filled squares
-        if quantity - quantity_count > len(colCons)-len(cols) + cols.count([]):
-            return False
-
-
-
-    #checks if there's a run that is too long
-    rows = np.transpose(np.array(cols))
     #print(rows)
-    for i in range(len(rows)):
-        row = rows[i]
-        if len(row) == 0:
-            sol = []
 
-        else:
-            curr = [0,0]
-            sol = []
-            for i in range(len(row)):
-                if row[i] == 0:
-                    if curr[0] > 0:
-                        sol.append(curr)
-                    curr = [0,0]
+    x = np.array(assignment)
+    print(x)
+    #print(len(rows))
+    for i in range(len(x[0])):
+        print(rows[i])
+        for j in range(len(rows[i])):
+            match = True
+            for k in range(len(x)):
+                if x[k][i] == -1:
                     continue
-                if curr[1] == 0:
-                    curr[1] = row[i]
-                    curr[0] = 1
-                else:
-                    curr[0]+=1
-            if row[len(row)-1] != 0:
-                sol.append(curr)
-        max = 0
-        for t in constraints[i]:
-            if t[0] > max:
-                max = t[0]
-        for x in sol:
-            if x[1] > max:
-                #return False
+                if x[k][i] != rows[i][j][k]:
+                    #print(x[k])
+                    #print(rows[i][j])
+                    match = False
+            if match:
                 continue
-
+            else:
+                if k == len(x)-1:
+                    return False
 
     return True
 
-
+#i is the row
+#j is the index of possible row
+#k is the column
 
 def checkAss(constraints, assignment):
     x = time()
@@ -184,7 +170,8 @@ def getLcv(constraints, assignment, cols, coli):
     return colSums
 
 
-def backtracking(constraints, assignment, cols):
+def backtracking(constraints, assignment, cols,rows):
+    print(assignment)
     global recurses
     recurses+=1
     if recurses%500 == 0:
@@ -207,8 +194,8 @@ def backtracking(constraints, assignment, cols):
     for val in x:
         temp = assignment.copy()
         temp[i] = val[1]
-        if partial_row_checker(temp, rowCons, colCons):
-            b = backtracking(constraints.copy(), temp.copy(), cols.copy())
+        if partial_row_checker(temp, rows):
+            b = backtracking(constraints.copy(), temp.copy(), cols.copy(), rows.copy())
             if b != None:
                 return b
 
@@ -218,15 +205,17 @@ def backtracking(constraints, assignment, cols):
 #send copy of cols to recursive
 def solve(constraints):
     x = time()
-    cols = getCols(constraints)
+    cols, rows = getCols(constraints)
     genColTime = time() -x
     colCons = constraints[1]
     rowCons = constraints[0]
     a= []
     for i in range(len(colCons)):
         a.append([])
+    print(len(colCons))
     print('begin backtracking')
-    x = backtracking(constraints, a, cols)
+
+    x = backtracking(constraints, a, cols,rows)
     x = np.array(x)
     x = np.transpose(x)
     print(dankTime,genColTime,checkAssTime,getLcvTime)
