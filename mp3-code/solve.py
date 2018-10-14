@@ -8,7 +8,7 @@ genColTime = 0
 checkAssTime = 0
 getLcvTime = 0
 recurses = 0
-def isDank(col, constraint, sums):
+def isValid(col, constraint, sums):
     x = time()
     curr = [0,0]
     sol = []
@@ -51,7 +51,7 @@ def getCols(constraints):
                     sums[v] = 0
             for l in colCons[i]:
                 sums[l[1]]+=l[0]
-            if isDank(col, colCons[i], sums):
+            if isValid(col, colCons[i], sums):
                 legitCols[i].append(col)
     legitRows = []
     all = genCols(len(colCons), vals)
@@ -67,7 +67,7 @@ def getCols(constraints):
                     sums[v] = 0
             for l in rowCons[i]:
                 sums[l[1]]+=l[0]
-            if isDank(row, rowCons[i], sums):
+            if isValid(row, rowCons[i], sums):
                 legitRows[i].append(row)
     return legitCols, legitRows
 
@@ -94,7 +94,6 @@ def partial_row_checker(assignment, rows):
     for i in range(len(assignment)):
         if assignment[i] == []:
             assignment[i] = [-1]*len(rows)
-
     #print(rows)
 
     x = np.array(assignment)
@@ -109,6 +108,7 @@ def partial_row_checker(assignment, rows):
                     #print(x[k])
                     #print(rows[i][j])
                     match = False
+
             if match:
                 break
             else:
@@ -138,7 +138,7 @@ def checkAss(constraints, assignment):
                 sums[l[1]]+=l[0]
             else:
                 sums[l[1]]=l[0]
-        if not isDank(row,rowCons[i],sums):
+        if not isValid(row,rowCons[i],sums):
             checkAssTime+=time()-x
             return False
     checkAssTime+=time()-x
@@ -180,12 +180,15 @@ def backtracking(constraints, assignment, cols,rows):
     mcv = []
     rowCons = constraints[0]
     colCons = constraints[1]
+
     for l in range(len(cols)):
         if assignment[l] == []:
             mcv.append(len(cols[l]))
         else:
             mcv.append(np.inf)
+
     i = mcv.index(np.min(mcv))
+
     x = getLcv(constraints.copy(), assignment.copy(), cols[i].copy(), i)
     for val in x:
         temp = assignment.copy()
@@ -214,7 +217,7 @@ def solve(constraints):
     x = backtracking(constraints, a, cols,rows)
     x = np.array(x)
     x = np.transpose(x)
-    print(dankTime,genColTime,checkAssTime,getLcvTime)
+    print(validTime,genColTime,checkAssTime,getLcvTime)
     print(x)
     return np.array(x)
 
