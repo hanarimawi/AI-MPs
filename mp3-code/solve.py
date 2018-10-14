@@ -98,10 +98,8 @@ def partial_row_checker(assignment, rows):
     #print(rows)
 
     x = np.array(assignment)
-    print(x)
     #print(len(rows))
     for i in range(len(x[0])):
-        print(rows[i])
         for j in range(len(rows[i])):
             match = True
             for k in range(len(x)):
@@ -112,11 +110,10 @@ def partial_row_checker(assignment, rows):
                     #print(rows[i][j])
                     match = False
             if match:
-                continue
+                break
             else:
-                if k == len(x)-1:
+                if j == len(rows[i])-1:
                     return False
-
     return True
 
 #i is the row
@@ -171,7 +168,6 @@ def getLcv(constraints, assignment, cols, coli):
 
 
 def backtracking(constraints, assignment, cols,rows):
-    print(assignment)
     global recurses
     recurses+=1
     if recurses%500 == 0:
@@ -194,7 +190,7 @@ def backtracking(constraints, assignment, cols,rows):
     for val in x:
         temp = assignment.copy()
         temp[i] = val[1]
-        if partial_row_checker(temp, rows):
+        if partial_row_checker(temp.copy(), rows):
             b = backtracking(constraints.copy(), temp.copy(), cols.copy(), rows.copy())
             if b != None:
                 return b
