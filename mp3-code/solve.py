@@ -1,14 +1,15 @@
 import numpy as np
-import pygame
 import time
 from time import time
+import copy
 
 dankTime = 0
 genColTime = 0
 checkAssTime = 0
 getLcvTime = 0
+partialTime = 0
 recurses = 0
-def isValid(col, constraint, sums):
+def isValid(col, constraint):
     x = time()
     curr = [0,0]
     sol = []
@@ -40,7 +41,7 @@ def getCols(constraints):
         for l in c:
             if l[1] not in vals:
                 vals.append(l[1])
-    all = genCols(len(rowCons), vals)
+    all = genCols1(len(rowCons), vals)
     legitCols = []
     for i in range(len(colCons)):
         legitCols.append([])
@@ -51,13 +52,11 @@ def getCols(constraints):
                     sums[v] = 0
             for l in colCons[i]:
                 sums[l[1]]+=l[0]
-            if isValid(col, colCons[i], sums):
+            if isValid(col, colCons[i]):
                 legitCols[i].append(col)
     legitRows = []
-    all = genCols(len(colCons), vals)
-    #print(all)
-    #print(vals)
-    #print(rowCons)
+    all = genCols1(len(colCons), vals)
+
     for i in range(len(rowCons)):
         legitRows.append([])
         for row in all:
@@ -67,22 +66,72 @@ def getCols(constraints):
                     sums[v] = 0
             for l in rowCons[i]:
                 sums[l[1]]+=l[0]
-            if isValid(row, rowCons[i], sums):
+            if isValid(row, rowCons[i]):
                 legitRows[i].append(row)
     return legitCols, legitRows
 
-def genCols(l, d):
+def genCols1(l, d):
     if l == 1:
         return [[x] for x in d]
     if l ==0:
         return []
     else:
         half = max(1,int(l/2))
-        sub1 = genCols(l-half, d)
-        sub2 = genCols(half,d)
+        sub1 = genCols1(l-half, d)
+        sub2 = genCols1(half,d)
 
         ret = [y + x for x in sub1 for y in sub2]
         return ret
+
+
+
+
+def genSplits(slots, zeros):
+    if slots == 1:
+        return [[zeros]]
+    sol = []
+
+    for i in range(zeros+1):
+        x = genSplits(slots-1, zeros-i)
+        for l in x:
+            sol.append([i]+l)
+    return sol
+
+def genCol(constraint,length):
+    base =[]
+    for i in range(len(constraint)):
+        temp = []
+        for j in range(constraint[i][0]):
+            temp.append(1)
+        if i < len(constraint)-1:
+            temp.append(0)
+        base.append(temp)
+    cols = []
+    digits= 0
+    for l in base:
+        digits+=len(l)
+    s = genSplits(len(base)+1, length-digits)
+    for i in range(len(s)):
+        cols.append([])
+        split = s[i]
+        for j in range(len(split)):
+            cols[i] = cols[i]+ ([0]*split[j])
+            if j <len(split)-1:
+                cols[i]+=base[j]
+    return(cols)
+
+def genCols(constraints):
+    rowCons = constraints[0]
+    colCons = constraints[1]
+    cols = []
+    for i in range(len(colCons)):
+        cols.append(genCol(colCons[i], len(rowCons)))
+
+    rows = []
+    for i in range(len(rowCons)):
+        rows.append(genCol(rowCons[i], len(colCons)))
+
+    return cols, rows
 
 
 
@@ -91,11 +140,12 @@ def partial_row_checker(assignment, rows):
     assume cols is 2d array and constraints is list([[1, 1], [1, 1], [1, 1]])
     return whether the columns are viable given the row constraints
     """
+    start = time()
     for i in range(len(assignment)):
         if assignment[i] == []:
             assignment[i] = [-1]*len(rows)
     #print(rows)
-
+    global partialTime
     x = np.array(assignment)
     #print(len(rows))
     for i in range(len(x[0])):
@@ -105,15 +155,17 @@ def partial_row_checker(assignment, rows):
                 if x[k][i] == -1:
                     continue
                 if x[k][i] != rows[i][j][k]:
-                    #print(x[k])
-                    #print(rows[i][j])
                     match = False
+                    break
 
             if match:
                 break
             else:
                 if j == len(rows[i])-1:
+                    partialTime += time() - start
                     return False
+
+    partialTime += time() - start
     return True
 
 #i is the row
@@ -138,7 +190,7 @@ def checkAss(constraints, assignment):
                 sums[l[1]]+=l[0]
             else:
                 sums[l[1]]=l[0]
-        if not isValid(row,rowCons[i],sums):
+        if not isValid(row,rowCons[i]):
             checkAssTime+=time()-x
             return False
     checkAssTime+=time()-x
@@ -167,10 +219,22 @@ def getLcv(constraints, assignment, cols, coli):
     return colSums
 
 
-def backtracking(constraints, assignment, cols,rows):
+def eliminate_cols(assignment, cols, rows):
+    fail_list = []
+    for l in range(len(cols)):
+        if assignment[l] == []:
+            for c in range(len(cols[l])):
+                temp = copy.deepcopy(assignment)
+                temp[l] = cols[l][c]
+                if not partial_row_checker(temp, rows):
+                    fail_list.append((l, c))
+    return fail_list
+
+
+def backtracking(constraints, assignment, cols, rows):
     global recurses
-    recurses+=1
-    if recurses%500 == 0:
+    recurses += 1
+    if recurses % 10 == 0:
         print(recurses)
     if [] not in assignment:
         if checkAss(constraints, assignment):
@@ -178,9 +242,6 @@ def backtracking(constraints, assignment, cols,rows):
         else:
             return None
     mcv = []
-    rowCons = constraints[0]
-    colCons = constraints[1]
-
     for l in range(len(cols)):
         if assignment[l] == []:
             mcv.append(len(cols[l]))
@@ -189,36 +250,43 @@ def backtracking(constraints, assignment, cols,rows):
 
     i = mcv.index(np.min(mcv))
 
-    x = getLcv(constraints.copy(), assignment.copy(), cols[i].copy(), i)
+    x = getLcv(copy.deepcopy(constraints), copy.deepcopy(assignment), copy.deepcopy(cols[i]), i)
     for val in x:
-        temp = assignment.copy()
+        temp = copy.deepcopy(assignment)
         temp[i] = val[1]
-        if partial_row_checker(temp.copy(), rows):
-            b = backtracking(constraints.copy(), temp.copy(), cols.copy(), rows.copy())
-            if b != None:
-                return b
+        fail_list = eliminate_cols(temp, cols, rows)
+        elim_cols = copy.deepcopy(cols)
+        for tup in fail_list:
+            elim_cols[tup[0]][tup[1]] = []
+        new_cols = []
+        for c in elim_cols:
+            new_cols.append([a for a in c if a != []])
+        b = backtracking(copy.deepcopy(constraints), temp, new_cols, copy.deepcopy(rows))
+        if b:
+            return b
 
     return None
 
 
 #send copy of cols to recursive
 def solve(constraints):
-    x = time()
+    y = time()
     cols, rows = getCols(constraints)
-    genColTime = time() -x
+    genColTime = time() -y
     colCons = constraints[1]
     rowCons = constraints[0]
-    a= []
+    a = []
     for i in range(len(colCons)):
         a.append([])
     print(len(colCons))
     print('begin backtracking')
 
-    x = backtracking(constraints, a, cols,rows)
+    x = backtracking(constraints, a, cols, rows)
     x = np.array(x)
     x = np.transpose(x)
-    print(validTime,genColTime,checkAssTime,getLcvTime)
+    print(partialTime,genColTime,checkAssTime,getLcvTime)
     print(x)
+    print(time()-y)
     return np.array(x)
 
 
