@@ -9,6 +9,11 @@ checkAssTime = 0
 getLcvTime = 0
 partialTime = 0
 recurses = 0
+partialCalled = 0
+
+
+
+
 def isValid(col, constraint):
     x = time()
     curr = [0,0]
@@ -134,6 +139,7 @@ def genCols(constraints):
     print("time:", time()-x)
     return cols, rows
 
+
 def partial_row_checker(assignment, rows):
     """
     assume cols is 2d array and constraints is list([[1, 1], [1, 1], [1, 1]])
@@ -142,11 +148,11 @@ def partial_row_checker(assignment, rows):
     start = time()
     for i in range(len(assignment)):
         if assignment[i] == []:
-            assignment[i] = [-1]*len(rows)
-    #print(rows)
+            assignment[i] = [-1] * len(rows)
+    # print(rows)
     global partialTime
     x = np.array(assignment)
-    #print(len(rows))
+    # print(len(rows))
     for i in range(len(x[0])):
         for j in range(len(rows[i])):
             match = True
@@ -160,12 +166,12 @@ def partial_row_checker(assignment, rows):
             if match:
                 break
             else:
-                if j == len(rows[i])-1:
+                if j == len(rows[i]) - 1:
                     partialTime += time() - start
-                    return False
+                    return False, i
 
     partialTime += time() - start
-    return True
+    return True, -1
 
 #i is the row
 #j is the index of possible row
@@ -222,19 +228,30 @@ def eliminate_cols(assignment, cols, rows):
     fail_list = []
     for l in range(len(cols)):
         if assignment[l] == []:
+            fail_row = []
             for c in range(len(cols[l])):
+                ccond = False
+                for r in fail_row:
+                    if cols[l][c][r[0]] == r[1]:
+                        fail_list.append((l, c))
+                        ccond = True
+                        break
+                if ccond:
+                    continue
                 temp = copy.deepcopy(assignment)
                 temp[l] = cols[l][c]
-                if not partial_row_checker(temp, rows):
+                global partialCalled
+                partialCalled += 1
+                cond, row = partial_row_checker(temp, rows)
+                if not cond:
                     fail_list.append((l, c))
+                    fail_row.append((row, cols[l][c][row]))
     return fail_list
 
 
 def backtracking(constraints, assignment, cols, rows):
     global recurses
     recurses += 1
-    if recurses % 10 == 0:
-        print(recurses)
     if [] not in assignment:
         if checkAss(constraints, assignment):
             return assignment
@@ -274,22 +291,27 @@ def backtracking(constraints, assignment, cols, rows):
 
 #send copy of cols to recursive
 def solve(constraints):
-    #x = time()
+    y = time()
     cols, rows = genCols(constraints)
-    #genColTime = time() -x
+    genColTime = time() -y
     colCons = constraints[1]
     rowCons = constraints[0]
     a = []
     for i in range(len(colCons)):
         a.append([])
-    print(len(colCons))
     print('begin backtracking')
-
+    sum = 0
+    for i in range(len(cols)):
+        sum += len(cols[i])
+    print(sum)
     x = backtracking(constraints, a, cols, rows)
     x = np.array(x)
     x = np.transpose(x)
-    print(dankTime,genColTime,checkAssTime,getLcvTime)
+    print(partialTime,genColTime,checkAssTime,getLcvTime)
     print(x)
+    print("runtime: "+str(time()-y))
+    print("partial check calls:" + str(partialCalled))
+    print("total amount of column possibilities: " + str(sum))
     return np.array(x)
 
 
