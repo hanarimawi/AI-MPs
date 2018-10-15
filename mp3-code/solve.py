@@ -13,7 +13,6 @@ partialCalled = 0
 
 
 
-
 def isValid(col, constraint):
     x = time()
     curr = [0,0]
@@ -89,8 +88,6 @@ def genCols1(l, d):
         return ret
 
 
-
-
 def genSplits(slots, zeros):
     if slots == 1:
         return [[zeros]]
@@ -101,6 +98,7 @@ def genSplits(slots, zeros):
         for l in x:
             sol.append([i]+l)
     return sol
+
 
 def genCol(constraint,length):
     base =[]
@@ -124,6 +122,7 @@ def genCol(constraint,length):
             if j <len(split)-1:
                 cols[i]+=base[j]
     return(cols)
+
 
 def genCols(constraints):
     x  = time()
@@ -251,7 +250,10 @@ def eliminate_cols(assignment, cols, rows):
 
 def backtracking(constraints, assignment, cols, rows):
     global recurses
+    sum = 0
     recurses += 1
+    for i in range(len(cols)):
+        sum += len(cols[i])
     if [] not in assignment:
         if checkAss(constraints, assignment):
             return assignment
@@ -267,14 +269,15 @@ def backtracking(constraints, assignment, cols, rows):
         else:
             mcv.append(np.inf)
             assigned +=1
-    if recurses%10 == 0:
-        print(assigned)
+    if recurses%1 == 0:
+        print(assigned, sum)
     i = mcv.index(np.min(mcv))
 
     x = getLcv(copy.deepcopy(constraints), copy.deepcopy(assignment), copy.deepcopy(cols[i]), i)
     for val in x:
         temp = copy.deepcopy(assignment)
         temp[i] = val[1]
+
         fail_list = eliminate_cols(temp, cols, rows)
         elim_cols = copy.deepcopy(cols)
         for tup in fail_list:
@@ -291,6 +294,7 @@ def backtracking(constraints, assignment, cols, rows):
 
 #send copy of cols to recursive
 def solve(constraints):
+    sum = 0
     y = time()
     cols, rows = genCols(constraints)
     genColTime = time() -y
@@ -300,10 +304,8 @@ def solve(constraints):
     for i in range(len(colCons)):
         a.append([])
     print('begin backtracking')
-    sum = 0
     for i in range(len(cols)):
         sum += len(cols[i])
-    print(sum)
     x = backtracking(constraints, a, cols, rows)
     x = np.array(x)
     x = np.transpose(x)
