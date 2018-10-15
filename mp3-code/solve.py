@@ -233,7 +233,7 @@ def backtracking(constraints, assignment, cols,rows):
         else:
             mcv.append(np.inf)
             assigned +=1
-    if recurses%100 == 0:
+    if recurses%10 == 0:
         print(assigned)
     i = mcv.index(np.min(mcv))
 
