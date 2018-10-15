@@ -2,6 +2,7 @@ import numpy as np
 import time
 from time import time
 import copy
+import re
 
 dankTime = 0
 genColTime = 0
@@ -126,51 +127,38 @@ def genCol(constraint,length):
 
 def genCols(constraints):
     x  = time()
-    rowCons = constraints[0]
     colCons = constraints[1]
+    rowCons = constraints[0]
     cols = []
     for i in range(len(colCons)):
         cols.append(genCol(colCons[i], len(rowCons)))
-
-    rows = []
-    for i in range(len(rowCons)):
-        rows.append(genCol(rowCons[i], len(colCons)))
     print("time:", time()-x)
-    return cols, rows
+    return cols
 
 
-def partial_row_checker(assignment, rows):
-    """
-    assume cols is 2d array and constraints is list([[1, 1], [1, 1], [1, 1]])
-    return whether the columns are viable given the row constraints
-    """
-    start = time()
+def experimental_row_check(assignment, constraints):
+    row_constraints = constraints[0]
+    dim0 = len(row_constraints)
     for i in range(len(assignment)):
         if assignment[i] == []:
-            assignment[i] = [-1] * len(rows)
-    # print(rows)
-    global partialTime
-    x = np.array(assignment)
-    # print(len(rows))
-    for i in range(len(x[0])):
-        for j in range(len(rows[i])):
-            match = True
-            for k in range(len(x)):
-                if x[k][i] == -1:
-                    continue
-                if x[k][i] != rows[i][j][k]:
-                    match = False
-                    break
+            assignment[i] = [2] * dim0
 
-            if match:
-                break
-            else:
-                if j == len(rows[i]) - 1:
-                    partialTime += time() - start
-                    return False, i
-
-    partialTime += time() - start
+    for i in range(dim0):
+        constraint = row_constraints[i]
+        row_col = []
+        for j in range(len(assignment)):
+            row_col.append(assignment[j][i])
+        stringed_row = "".join(map(str, row_col))
+        regex = "^(0|2)*"
+        for cons in constraint:
+            regex = regex + "(1|2){" + str(cons[0]) + "}(0|2)+"
+        regex = regex[:-1] + "*$"
+        pattern = re.compile(regex)
+        if not bool(pattern.match(stringed_row)):
+            return False, i
     return True, -1
+
+
 
 #i is the row
 #j is the index of possible row
@@ -223,7 +211,7 @@ def getLcv(constraints, assignment, cols, coli):
     return colSums
 
 
-def eliminate_cols(assignment, cols, rows):
+def eliminate_cols(assignment, cols, constraints):
     fail_list = []
     for l in range(len(cols)):
         if assignment[l] == []:
@@ -241,14 +229,14 @@ def eliminate_cols(assignment, cols, rows):
                 temp[l] = cols[l][c]
                 global partialCalled
                 partialCalled += 1
-                cond, row = partial_row_checker(temp, rows)
+                cond, row = experimental_row_check(copy.deepcopy(temp), constraints)
                 if not cond:
                     fail_list.append((l, c))
                     fail_row.append((row, cols[l][c][row]))
     return fail_list
 
 
-def backtracking(constraints, assignment, cols, rows):
+def backtracking(constraints, assignment, cols):
     global recurses
     sum = 0
     recurses += 1
@@ -269,7 +257,7 @@ def backtracking(constraints, assignment, cols, rows):
         else:
             mcv.append(np.inf)
             assigned +=1
-    if recurses%1 == 0:
+    if recurses%10 == 0:
         print(assigned, sum)
     i = mcv.index(np.min(mcv))
 
@@ -278,14 +266,14 @@ def backtracking(constraints, assignment, cols, rows):
         temp = copy.deepcopy(assignment)
         temp[i] = val[1]
 
-        fail_list = eliminate_cols(temp, cols, rows)
+        fail_list = eliminate_cols(temp, cols, constraints)
         elim_cols = copy.deepcopy(cols)
         for tup in fail_list:
             elim_cols[tup[0]][tup[1]] = []
         new_cols = []
         for c in elim_cols:
             new_cols.append([a for a in c if a != []])
-        b = backtracking(copy.deepcopy(constraints), temp, new_cols, copy.deepcopy(rows))
+        b = backtracking(constraints, temp, new_cols)
         if b:
             return b
 
@@ -296,7 +284,7 @@ def backtracking(constraints, assignment, cols, rows):
 def solve(constraints):
     sum = 0
     y = time()
-    cols, rows = genCols(constraints)
+    cols = genCols(constraints)
     genColTime = time() -y
     colCons = constraints[1]
     rowCons = constraints[0]
@@ -306,7 +294,7 @@ def solve(constraints):
     print('begin backtracking')
     for i in range(len(cols)):
         sum += len(cols[i])
-    x = backtracking(constraints, a, cols, rows)
+    x = backtracking(constraints, a, cols)
     x = np.array(x)
     x = np.transpose(x)
     print(partialTime,genColTime,checkAssTime,getLcvTime)
