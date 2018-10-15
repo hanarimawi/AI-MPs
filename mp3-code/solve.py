@@ -279,6 +279,46 @@ def backtracking(constraints, assignment, cols):
 
     return None
 
+def simple_box_checker(row_cons, col_cons, cols):
+    # newcols = copy.deepcopy(cols)
+    # newrows = copy.deepcopy(rows)
+    max_rows = len(cols)
+    # max_cols = len(rows)
+    # deletedcols = [[]]
+    # deletedrows = [[]]
+    del_col_nums = 0
+    # del_row_nums = 0
+    for i in range(len(row_cons)):
+        row_con = row_cons[i]
+        if len(row_con) == 1:
+            num_ones = row_con[0][0]
+            if (num_ones > int(max_rows / 2 )):
+                    edge_spaces_left = max_rows - num_ones
+                    filled_in = max_rows - (edge_spaces_left*2)
+                    print(row_con, " ", num_ones, " ", edge_spaces_left, " ", int(edge_spaces_left/2), " ", int(max_rows / 2 ))
+                    for j in range(edge_spaces_left, edge_spaces_left + filled_in):
+                        col_section = cols[j]
+                        for col in col_section:
+                            if col[i] != 1:
+                                # deletedcols.append(col)
+                                del_col_nums += 1
+                                del col
+    # for i in range(len(col_cons)):
+    #     col_con = col_cons[i]
+    #     if len(col_con) == 1:
+    #         num_ones = col_con[0][0]
+    #         if (max_cols % 2 != 0 and num_ones > int(max_rows / 2 )) or (max_cols % 2 == 0 and num_ones > max_cols / 2):
+    #                 edge_spaces_left = max_cols - num_ones
+    #                 filled_in = max_cols - (edge_spaces_left*2)
+    #                 for j in range(edge_spaces_left, edge_spaces_left + filled_in):
+    #                     row_section = newrows[j]
+    #                     for row in row_section:
+    #                         if row[i] != 1:
+    #                             # deletedrows.append(row)
+    #                             del_row_nums += 1
+    #                             del row
+    print("deleted COL:", del_col_nums)
+    # return newcols
 
 #send copy of cols to recursive
 def solve(constraints):
@@ -291,6 +331,7 @@ def solve(constraints):
     a = []
     for i in range(len(colCons)):
         a.append([])
+    simple_box_checker(rowCons, colCons, cols)
     print('begin backtracking')
     for i in range(len(cols)):
         sum += len(cols[i])
