@@ -279,18 +279,43 @@ def backtracking(constraints, assignment, cols):
 
     return None
 
+def simple_box_checker(row_cons, col_cons, cols):
+    max_rows = len(cols)
+    newcols = copy.deepcopy(cols)
+    del_col_nums = 0
+    saved = 0
+    for i in range(len(row_cons)):
+        row_con = row_cons[i]
+        if len(row_con) == 1:
+            num_ones = row_con[0][0]
+            if (num_ones > int(max_rows / 2 )):
+                    edge_spaces_left = max_rows - num_ones
+                    filled_in = max_rows - (edge_spaces_left*2)
+                    for j in range(edge_spaces_left, edge_spaces_left + filled_in):
+                        col_section = cols[j]
+                        k = 0
+                        for col in col_section:
+                            if col[i] != 1:
+                                del_col_nums += 1
+                                del col_section[k]
+                            k += 1
+                        saved += len(newcols[j]) - len(col_section)
+                        newcols[j] = col_section
+    print("deleted COL:", del_col_nums)
+    return newcols
 
 #send copy of cols to recursive
 def solve(constraints):
     sum = 0
     y = time()
-    cols = genCols(constraints)
+    all_cols = genCols(constraints)
     genColTime = time() -y
     colCons = constraints[1]
     rowCons = constraints[0]
     a = []
     for i in range(len(colCons)):
         a.append([])
+    cols = all_cols#simple_box_checker(rowCons, colCons, all_cols)
     print('begin backtracking')
     for i in range(len(cols)):
         sum += len(cols[i])
@@ -303,8 +328,6 @@ def solve(constraints):
     print("partial check calls:" + str(partialCalled))
     print("total amount of column possibilities: " + str(sum))
     return np.array(x)
-
-
 
     """
     Implement me!!!!!!!
