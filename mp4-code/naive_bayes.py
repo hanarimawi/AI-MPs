@@ -28,7 +28,6 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter):
 
     smoothing_parameter - The smoothing parameter you provided with --laplace (1.0 by default)
     """
-    # do some data cleaning on the training set and the dev set before we start (optional, test if needed)
 
     # get word counts of each class
     count_spam = {}
@@ -38,6 +37,9 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter):
     for email in range(len(train_set)):
         doc_class = train_labels[email]
         for word in train_set[email]:
+            # skip words of less that length 4 to catch stop words/formatting/tags that don't give context
+            if len(word) < 4:
+                continue
             if doc_class == 0:
                 if word not in count_spam:
                     count_spam[word] = 1
