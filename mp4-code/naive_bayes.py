@@ -6,6 +6,7 @@
 # attribution to the University of Illinois at Urbana-Champaign
 #
 # Created by Justin Lizama (jlizama2@illinois.edu) on 09/28/2018
+import math
 
 """
 This is the main entry point for MP4. You should only modify code
@@ -60,16 +61,16 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter):
     log_likelihood_spam = {}
     types_of_words_ham = len(count_ham)
     types_of_words_spam = len(count_spam)
-    log_likelihood_ham["UNKNOWN"] = smoothing_parameter / (num_words_ham + (smoothing_parameter*(types_of_words_ham+1)))
-    log_likelihood_spam["UNKNOWN"] = smoothing_parameter / (num_words_spam + (smoothing_parameter*(types_of_words_spam+1)))
+    log_likelihood_ham["UNKNOWN"] = math.log(smoothing_parameter / (num_words_ham + (smoothing_parameter*(types_of_words_ham+1))))
+    log_likelihood_spam["UNKNOWN"] = math.log(smoothing_parameter / (num_words_spam + (smoothing_parameter*(types_of_words_spam+1))))
 
     # calculate log likelihoods for each type of word
     for word in count_ham:
-        log_likelihood_ham[word] = (count_ham[word] + smoothing_parameter) \
-                                   / (num_words_ham + (smoothing_parameter*(types_of_words_ham+1)))
+        log_likelihood_ham[word] = math.log((count_ham[word] + smoothing_parameter) \
+                                   / (num_words_ham + (smoothing_parameter*(types_of_words_ham+1))))
     for word in count_spam:
-        log_likelihood_spam[word] = (count_spam[word] + smoothing_parameter) \
-                              / (num_words_spam + (smoothing_parameter*(types_of_words_spam+1)))
+        log_likelihood_spam[word] = math.log((count_spam[word] + smoothing_parameter) \
+                              / (num_words_spam + (smoothing_parameter*(types_of_words_spam+1))))
 
     # apply our model to the test set
     predicted = []
