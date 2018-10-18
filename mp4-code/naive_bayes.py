@@ -30,15 +30,44 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter):
     """
     # do some data cleaning on the training set and the dev set before we start (optional, test if needed)
 
-    # split the dataset into the ham/spam sets so we can compute the probabilistic models of each
-    spam = []
-    ham = []
-    for email in range(train_set):
-        if train_labels[email] == 0:
-            spam.append(train_set[email])
-        else:
-            ham.append(train_set[email])
+    # get word counts of each class
+    count_spam = {}
+    count_ham = {}
+    num_words_ham = 0
+    num_words_spam = 0
+    for email in range(len(train_set)):
+        doc_class = train_labels[email]
+        for word in train_set[email]:
+            if doc_class == 0:
+                if word not in count_spam:
+                    count_spam[word] = 1
+                    num_words_spam += 1
+                else:
+                    count_spam[word] += 1
+                    num_words_spam += 1
+            elif doc_class == 1:
+                if word not in count_ham:
+                    count_ham[word] = 1
+                    num_words_ham += 1
+                else:
+                    count_ham[word] += 1
+                    num_words_ham += 1
 
+    # setup constants for our log likelihood calculation
+    log_likelihood_ham = {}
+    log_likelihood_spam = {}
+    types_of_words_ham = len(count_ham)
+    types_of_words_spam = len(count_spam)
+    log_likelihood_ham["UNKNOWN"] = smoothing_parameter / (num_words_ham + (smoothing_parameter*(types_of_words_ham+1)))
+    log_likelihood_spam["UNKNOWN"] = smoothing_parameter / (num_words_spam + (smoothing_parameter*(types_of_words_spam+1)))
+
+    # calculate log likelihoods for each type of word
+    for word in count_ham:
+        log_likelihood_ham[word] = (count_ham[word] + smoothing_parameter) \
+                                   / (num_words_ham + (smoothing_parameter*(types_of_words_ham+1)))
+    for word in count_spam:
+        log_likelihood_spam[word] = (count_ham[word] + smoothing_parameter) \
+                              / (num_words_spam + (smoothing_parameter*(types_of_words_spam+1)))
 
     # return predicted labels of development set
     return []
