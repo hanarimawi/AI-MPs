@@ -66,8 +66,25 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter):
         log_likelihood_ham[word] = (count_ham[word] + smoothing_parameter) \
                                    / (num_words_ham + (smoothing_parameter*(types_of_words_ham+1)))
     for word in count_spam:
-        log_likelihood_spam[word] = (count_ham[word] + smoothing_parameter) \
+        log_likelihood_spam[word] = (count_spam[word] + smoothing_parameter) \
                               / (num_words_spam + (smoothing_parameter*(types_of_words_spam+1)))
 
-    # return predicted labels of development set
-    return []
+    # apply our model to the test set
+    predicted = []
+    for email in dev_set:
+        prob_ham = 0
+        prob_spam = 0
+        for word in email:
+            if word in log_likelihood_ham:
+                prob_ham += log_likelihood_ham[word]
+            else:
+                prob_ham += log_likelihood_ham["UNKNOWN"]
+            if word in log_likelihood_spam:
+                prob_spam += log_likelihood_spam[word]
+            else:
+                prob_spam += log_likelihood_spam["UNKNOWN"]
+        if prob_spam > prob_ham:
+            predicted.append(0)
+        else:
+            predicted.append(1)
+    return predicted
