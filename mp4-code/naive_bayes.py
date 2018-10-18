@@ -28,6 +28,17 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter):
 
     smoothing_parameter - The smoothing parameter you provided with --laplace (1.0 by default)
     """
-    # TODO: Write your code here
+    # do some data cleaning on the training set and the dev set before we start (optional, test if needed)
+
+    # split the dataset into the ham/spam sets so we can compute the probabilistic models of each
+    spam = []
+    ham = []
+    for email in range(train_set):
+        if train_labels[email] == 0:
+            spam.append(train_set[email])
+        else:
+            ham.append(train_set[email])
+
+
     # return predicted labels of development set
     return []
