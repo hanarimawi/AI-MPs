@@ -23,7 +23,7 @@ output: list of sentences, each sentence is a list of (word,tag) pairs.
 '''
 def process_word(word):
     word = word.replace('``', '')
-    word = word.lower()
+    # word = word.lower()
     return word
 
 def baseline(train, test):
@@ -45,7 +45,7 @@ def baseline(train, test):
             else:
                 freq[word[0]]= {}
                 freq[word[0]][word[1]] = 1
-    print(pos)
+    # print(pos)
 
     highest_frequency = 0
     best_guess= ''
@@ -55,7 +55,6 @@ def baseline(train, test):
             highest_frequency = pos[tag]
 
     ind = 0
-    print(test)
     predicts = []
     for sentence in test:
         predicts.append([])
