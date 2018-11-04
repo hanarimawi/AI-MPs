@@ -142,9 +142,10 @@ def viterbi(train, test):
     #print(c)
     predicts = []
     for sentence in test:
-        trellis = np.zeros((len(sentence), len(tags)))
-        if sentence == []:
+        if not sentence:
+            predicts.append([])
             continue
+        trellis = np.zeros((len(sentence), len(tags)))
         for i in range(len(tags)):
             word = process_word(sentence[0])
             if (word, tags[i]) in pos:
@@ -157,7 +158,7 @@ def viterbi(train, test):
             word = process_word(sentence[i])
             for j in range(len(tags)):
                 best_val = -99999
-
+                best_tag = None
                 for k in range(len(tags)):
                     if (tags[k],tags[j]) in trans:
                         p_transition = trans[(tags[k],tags[j])]
@@ -180,7 +181,6 @@ def viterbi(train, test):
             l = list(trellis[len(sentence)-i])
             chain.insert(0, (word,tags[l.index(max(l))]))
         predicts.append(chain)
-
 
     #print(trans)
 
