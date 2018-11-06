@@ -106,7 +106,6 @@ def GoodTuringSmooth(dic):
         N_r = freq_of_freq[r]
         if r == 0:
             N_r_plus_1 = freq_of_freq[min(freq_of_freq, key= lambda x:abs(x-(r+1)))] / (N*1000)
-            # print("N*(1000)", r, N_r, min(freq_of_freq, key= lambda x:abs(x-(r+1))), N_r_plus_1, r, dic[key])
             dic[key] = N_r_plus_1/N
             dic[key] = math.log(dic[key])
         else:
@@ -159,13 +158,12 @@ def viterbi(train, test):
     trans['unknown'] = 0
     pos['unknown'] = 0
 
-    # trans = LaplaceSmooth(trans,.00002)
-    # initial = LaplaceSmooth(initial,.00002)
-    # pos = LaplaceSmooth(pos,.00002)
-
-    pos = GoodTuringSmooth(pos)    
-    trans = GoodTuringSmooth(trans)
-    initial = GoodTuringSmooth(initial)
+    trans = LaplaceSmooth(trans,.000009)
+    initial = LaplaceSmooth(initial,.000009)
+    pos = LaplaceSmooth(pos,.000009)
+    # pos = GoodTuringSmooth(pos)    
+    # trans = GoodTuringSmooth(trans)
+    # initial = GoodTuringSmooth(initial)
 
     predicts = []
     for sentence in test:
@@ -208,8 +206,5 @@ def viterbi(train, test):
             l = list(trellis[len(sentence)-i])
             chain.insert(0, (word,tags[l.index(max(l))]))
         predicts.append(chain)
-
-    #print(trans)
-
 
     return predicts
