@@ -7,6 +7,8 @@
 #
 # Created by Justin Lizama (jlizama2@illinois.edu) on 10/27/2018
 
+import numpy as np
+
 """
 This is the main entry point for MP6. You should only modify code
 within this file -- the unrevised staff files will be used for all other
@@ -29,9 +31,36 @@ def classify(train_set, train_labels, dev_set, learning_rate,max_iter):
     dev_set - A Numpy array of 32x32x3 images of shape [2500, 3072].
               It is the same format as train_set
     """
-    # TODO: Write your code here
-    # return predicted labels of development set
-    return []
+    bias_column_train = np.ones((train_set.shape[0], 1))
+    train = np.concatenate((train_set, bias_column_train), axis=1)
+    bias_column_dev = np.ones((dev_set.shape[0], 1))
+    dev = np.concatenate((dev_set, bias_column_dev), axis=1)
+    weights = np.zeros(train.shape[1])
+
+    for epoch in range(max_iter):
+        for image_index in range(train_set.shape[0]):
+            funcX = np.dot(train[image_index], weights)
+            prediction = True
+            if funcX < 0:
+                prediction = False
+            if prediction != train_labels[image_index]:
+                multiplier = -1
+                if train_labels[image_index]:
+                    multiplier = 1
+                weights += (learning_rate * multiplier * train[image_index])
+
+    dev_labels = []
+    for image in dev:
+        funcX = np.dot(image, weights)
+        if funcX > 0:
+            dev_labels.append(True)
+        else:
+            dev_labels.append(False)
+    return dev_labels
+
+
+
+
 
 def classifyEC(train_set, train_labels, dev_set,learning_rate,max_iter):
     # Write your code here if you would like to attempt the extra credit
