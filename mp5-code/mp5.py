@@ -40,10 +40,10 @@ def main(args):
     train_set = load_dataset(args.training_file, args.case_sensitive)
     test_set = load_dataset(args.test_file, args.case_sensitive)
     if args.baseline:
-        print("You are running the baseline algorithm!")
+        # print("You are running the baseline algorithm!")
         accuracy = compute_accuracies(test_set, baseline(train_set, strip_tags(test_set)))
     else:
-        print("You are running the Viterbi algorithm!")
+        # print("You are running the Viterbi algorithm!")
         accuracy = compute_accuracies(test_set, viterbi(train_set, strip_tags(test_set)))
     print("Accuracy:",accuracy)
 

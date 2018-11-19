@@ -23,7 +23,7 @@ output: list of sentences, each sentence is a list of (word,tag) pairs.
 '''
 def process_word(word):
     word = word.replace('``', '')
-    word = word.lower()
+    # word = word.lower()
     return word
 
 def baseline(train, test):
@@ -45,7 +45,7 @@ def baseline(train, test):
             else:
                 freq[word[0]]= {}
                 freq[word[0]][word[1]] = 1
-    print(pos)
+    # print(pos)
 
     highest_frequency = 0
     best_guess= ''
@@ -55,7 +55,6 @@ def baseline(train, test):
             highest_frequency = pos[tag]
 
     ind = 0
-    print(test)
     predicts = []
     for sentence in test:
         predicts.append([])
@@ -83,7 +82,7 @@ input:  training data (list of sentences, with tags on the words)
 output: list of sentences with tags on the words
         E.g., [[(word1, tag1), (word2, tag2)], [(word3, tag3), (word4, tag4)]]
 '''
-def normalize(dic, a):
+def LaplaceSmooth(dic, a):
     count = 0
     for key in dic:
         dic[key]+=a
@@ -93,8 +92,32 @@ def normalize(dic, a):
         dic[key] = math.log(dic[key])
     return dic
 
+def GoodTuringSmooth(dic):
+    N = 0
+    freq_of_freq = {} #n_r
+    for curr_freq in dic.values():
+        N += curr_freq
+        if curr_freq in freq_of_freq.keys():
+            freq_of_freq[curr_freq] +=1
+        else:
+            freq_of_freq[curr_freq] =1
+    for key in dic:
+        r = dic[key]
+        N_r = freq_of_freq[r]
+        if r == 0:
+            N_r_plus_1 = freq_of_freq[min(freq_of_freq, key= lambda x:abs(x-(r+1)))] / (N*1000)
+            dic[key] = N_r_plus_1/N
+            dic[key] = math.log(dic[key])
+        else:
+            #find nearest biggest frequency, might be N_r+1, might be more
+            N_r_plus_1 = freq_of_freq[min(freq_of_freq, key= lambda x:abs(x-(r+1)))]
+            dic[key] = (r + 1) * (N_r_plus_1/N_r)
+            dic[key] /= N
+            dic[key] = math.log(dic[key])
+    return dic
+
+
 def viterbi(train, test):
-    freq = {}
     pos = {} #state observation likelihood dic - each tag is a key to a dic that has word counts for that tag
     initial = {} #initial probability dic- counts # of times each tag is seen at the start of a sentence
     trans = {} #transition probability dic - tracks consecutive tag counts
@@ -115,7 +138,6 @@ def viterbi(train, test):
         prev = ()
         for word in sentence:
             word = (process_word(word[0]), word[1])
-
             if word in pos:
                 pos[word]+=1
             else:
@@ -135,11 +157,14 @@ def viterbi(train, test):
     tags = list(tags)
     trans['unknown'] = 0
     pos['unknown'] = 0
-    trans = normalize(trans,1)
-    pos = normalize(pos,1)
-    initial = normalize(initial,0)
-    #print(initial_counts)
-    #print(c)
+
+    trans = LaplaceSmooth(trans,.000009)
+    initial = LaplaceSmooth(initial,.000009)
+    pos = LaplaceSmooth(pos,.000009)
+    # pos = GoodTuringSmooth(pos)    
+    # trans = GoodTuringSmooth(trans)
+    # initial = GoodTuringSmooth(initial)
+
     predicts = []
     for sentence in test:
         if not sentence:
@@ -181,8 +206,5 @@ def viterbi(train, test):
             l = list(trellis[len(sentence)-i])
             chain.insert(0, (word,tags[l.index(max(l))]))
         predicts.append(chain)
-
-    #print(trans)
-
 
     return predicts
