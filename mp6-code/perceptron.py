@@ -80,44 +80,18 @@ def getPrediction(neighbors):
     return np.mean(neighbors) > .5
 
 def classifyEC(train_set, train_labels, dev_set,learning_rate,max_iter):
-    bias_column_train = np.ones((train_set.shape[0], 1))
-    train = np.concatenate((train_set, bias_column_train), axis=1)
-    bias_column_dev = np.ones((dev_set.shape[0], 1))
-    dev = np.concatenate((dev_set, bias_column_dev), axis=1)
-    weights = np.zeros(train.shape[1])
 
     k = 3
-    for epoch in range(max_iter):
-        for image_index in range(train_set.shape[0]):
-            kNN = getNeighbors(train_set, train_set[image_index], k)
-            neighbor_labels = []
-            for neighbor in kNN:
-                neighbor_labels.append(train_labels[neighbor])
-            prediction = getPrediction(neighbor_labels)
-            if prediction != train_labels[image_index]:
-                multiplier = -1
-                weights += (learning_rate * multiplier * train[image_index])
-    
     dev_labels = []
-    for image in dev:
-        funcX = np.dot(image, weights)
-        if funcX > 0:
-            dev_labels.append(True)
-        else:
-            dev_labels.append(False)
+    for image_index in range(dev_set.shape[0]):
+        kNN = getNeighbors(train_set, dev_set[image_index], k)
+        neighbor_labels = []
+        for neighbor in kNN:
+            neighbor_labels.append(train_labels[neighbor])
+        result = getPrediction(neighbor_labels)
+        dev_labels.append(result)
+    print("k=", k)
     return dev_labels
-
-    # k = 3
-    # dev_labels = []
-    # for image_index in range(dev_set.shape[0]):
-    #     kNN = getNeighbors(train_set, dev_set[image_index], k)
-    #     neighbor_labels = []
-    #     for neighbor in kNN:
-    #         neighbor_labels.append(train_labels[neighbor])
-    #     result = getPrediction(neighbor_labels)
-    #     dev_labels.append(result)
-    # print("k=", k)
-    # return dev_labels
 
 def classifyEC2(train_set, train_labels, dev_set,learning_rate,max_iter):
     bias_column_train = np.ones((train_set.shape[0], 1))
