@@ -58,7 +58,7 @@ def classify(train_set, train_labels, dev_set, learning_rate,max_iter):
     return dev_labels
 
 
-
+#K Nearest Neighbor
 from numpy import linalg as LA
 def getDistance(image1, image2):
 	return abs(LA.norm(image1 - image2, 1))
@@ -77,6 +77,21 @@ def getNeighbors(trainingSet, testimage, k):
 
 def getPrediction(neighbors):
     return np.mean(neighbors) > 0.5
+
+def kNNEC(train_set, train_labels, dev_set,learning_rate,max_iter):
+    k = 7
+    dev_labels = []
+    for image_index in range(dev_set.shape[0]):
+        kNN = getNeighbors(train_set, dev_set[image_index], k)
+        neighbor_labels = []
+        for neighbor in kNN:
+            neighbor_labels.append(train_labels[neighbor])
+        result = getPrediction(neighbor_labels)
+        dev_labels.append(result)
+    print("k=", k)
+    return dev_labels
+
+
 def pca(data):
     data = np.matrix(data, dtype = float)
     #print(data)
