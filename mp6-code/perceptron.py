@@ -8,7 +8,7 @@
 # Created by Justin Lizama (jlizama2@illinois.edu) on 10/27/2018
 
 import numpy as np
-
+import time
 """
 This is the main entry point for MP6. You should only modify code
 within this file -- the unrevised staff files will be used for all other
@@ -27,7 +27,6 @@ def classify(train_set, train_labels, dev_set, learning_rate,max_iter):
              and X1 is a picture of a dog and X2 is a picture of an airplane.
              Then train_labels := [1,0] because X1 contains a picture of an animal
              and X2 contains no animals in the picture.
-
     dev_set - A Numpy array of 32x32x3 images of shape [2500, 3072].
               It is the same format as train_set
     """
@@ -64,7 +63,7 @@ from numpy import linalg as LA
 def getDistance(image1, image2):
 	return abs(LA.norm(image1 - image2, 1))
 
-import operator 
+import operator
 def getNeighbors(trainingSet, testimage, k):
 	distances = []
 	for x in range(len(trainingSet)):
@@ -78,8 +77,41 @@ def getNeighbors(trainingSet, testimage, k):
 
 def getPrediction(neighbors):
     return np.mean(neighbors) > 0.5
+def pca(data):
+    data = np.matrix(data, dtype = float)
+    #print(data)
+    for i in range(data.shape[1]):
+        col_avg= np.mean(data[:,i])
+        #print(col_avg)
+        data[:,i] = (data[:,i] - col_avg)/np.std(data[:,i])
+    cov = np.cov(data.T)
+    evals, evecs = np.linalg.eig(cov)
+    evals = evals/sum(evals)
+    pairs = []
+    for i in range(len(evals)):
+        pairs.append((evals[i], evecs[i]))
+    pairs = sorted(pairs, reverse = True)
+    cum = np.cumsum(sorted(evals, reverse = True))
+    pcs = 600
+    i = 0
+    while i < 2000:
+        print(i, cum[i])
+        i+=100
+    w = []
+    for i in range(pcs):
+        evec = pairs[i][1]
+        w.append(evec.reshape(len(evec), 1))
+    w = np.hstack(w)
+    new_train = data.dot(w)
+    return new_train
+    #print(data)
+
 
 def classifyEC(train_set, train_labels, dev_set,learning_rate,max_iter):
+    x = time.time()
+    train_set = pca(train_set)
+    dev_set = pca(dev_set)
+    print('done pca')
 
     k = 3
     dev_labels = []
@@ -91,4 +123,5 @@ def classifyEC(train_set, train_labels, dev_set,learning_rate,max_iter):
         result = getPrediction(neighbor_labels)
         dev_labels.append(result)
     print("k=", k)
+    print(time.time() - x)
     return dev_labels
