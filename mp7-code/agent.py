@@ -22,6 +22,8 @@ class Agent:
 
     def act(self, state, bounces, done, won):
          #TODO - fill out this function
+        
+        #self.learn(self.lastState, self.lastAction, reward, state)
         return self._actions[0]
 
     def train(self):
@@ -47,11 +49,11 @@ class Agent:
         # return self.Q.get((state, action), 1.0)
     
     def learnQ(self, state, action, reward, value):
-        oldv = self.Q.get((state, action), None)
-        if oldv is None:
+        curr_q = self.Q.get((state, action), None)
+        if curr_q is None:
             self.Q[(state, action)] = reward
         else:
-            self.Q[(state, action)] = oldv + self.alpha * (value - oldv)
+            self.Q[(state, action)] = curr_q + self.alpha * (value - curr_q)
 
     def chooseAction(self, state):
         if random.random() < self.epsilon:
@@ -69,9 +71,9 @@ class Agent:
             action = self._actions[i]
         return action
 
-    def learn(self, state1, action1, reward, state2):
-        maxqnew = max([self.getQ(state2, a) for a in self._actions])
-        self.learnQ(state1, action1, reward, reward + self.gamma*maxqnew)
+    def learn(self, prev_state, action, reward, curr_state):
+        max_q = max([self.getQ(curr_state, a) for a in self._actions])
+        self.learnQ(prev_state, action, reward, reward + self.gamma*max_q)
 
     def getDiscreteState(self, state):
         ball_x = state[0]
@@ -99,4 +101,4 @@ class Agent:
         return (ball_x, ball_y, x_vel, y_vel, discrete_paddle)
 
 
-#update equation = self.Q[(state, action)] = self.Q.get((state, action), None) + self.alpha * (reward +  (self.gamma* max([self.getQ(state2, a) for a in self._actions]) - self.Q.get((state, action), None)))
+#update equation = self.Q[(state, action)] = self.Q.get((state, action), None) + self.alpha * (reward +  (self.gamma* max([self.getQ(curr_state, a) for a in self._actions]) - self.Q.get((state, action), None)))
