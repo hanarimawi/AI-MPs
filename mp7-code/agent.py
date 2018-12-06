@@ -1,5 +1,6 @@
 import utils
 import random
+import math
 
 class Agent:
     
@@ -18,8 +19,6 @@ class Agent:
         self.epsilon = .1
         self.alpha = .2
         self.gamma = .9
-
-# https://github.com/studywolf/blog/blob/master/RL/Cat%20vs%20Mouse%20exploration/qlearn.py
 
     def act(self, state, bounces, done, won):
          #TODO - fill out this function
@@ -40,7 +39,8 @@ class Agent:
         self.Q = utils.load(model_path)
 
 
-
+# https://studywolf.wordpress.com/2012/11/25/reinforcement-learning-q-learning-and-exploration/
+# linked from lecture
 
     def getQ(self, state, action):
         return self.Q.get((state, action), 0.0)
@@ -72,3 +72,31 @@ class Agent:
     def learn(self, state1, action1, reward, state2):
         maxqnew = max([self.getQ(state2, a) for a in self._actions])
         self.learnQ(state1, action1, reward, reward + self.gamma*maxqnew)
+
+    def getDiscreteState(self, state):
+        ball_x = state[0]
+        ball_y = state[1]
+        v_x = state[2]
+        v_y = state[3]
+        paddle_y = state[4]
+
+        paddle_height = 0.2
+
+        x_vel = -1
+        y_vel = -1
+        if v_x > 0:
+            x_vel = 1
+        if abs(v_y) <  0.015:
+            y_vel = 0
+        elif v_y >= 0.015:
+            y_vel = 1
+        else:
+            y_vel = 0
+        
+        discrete_paddle = math.floor(12 * paddle_y / (1 - paddle_height))
+        if paddle_y == 1 - paddle_height:
+            discrete_paddle = 11
+        return (ball_x, ball_y, x_vel, y_vel, discrete_paddle)
+
+
+#update equation = self.Q[(state, action)] = self.Q.get((state, action), None) + self.alpha * (reward +  (self.gamma* max([self.getQ(state2, a) for a in self._actions]) - self.Q.get((state, action), None)))
