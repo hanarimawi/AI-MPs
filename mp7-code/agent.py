@@ -68,8 +68,8 @@ class Agent:
             action = self._actions[i]
         return action
 
-    def learn(self, prev_state, action, reward, curr_state):
-        max_q = max([self.getQ(curr_state, a) for a in self._actions])
+    def learn(self, prev_state, action, reward, prime_state):
+        max_q = max([self.getQ(prime_state, a) for a in self._actions])
         self.learnQ(prev_state, action, reward, reward + self.gamma*max_q)
     
     
