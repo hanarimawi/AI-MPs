@@ -100,5 +100,12 @@ class Agent:
             discrete_paddle = 11
         return (ball_x, ball_y, x_vel, y_vel, discrete_paddle)
 
-
+    def getReward(self, won, bounces, done):
+        reward = 0
+        if done and won:
+            reward = 1
+        elif done and not won:
+            reward = -1
+        #to be continued
+        
 #update equation = self.Q[(state, action)] = self.Q.get((state, action), None) + self.alpha * (reward +  (self.gamma* max([self.getQ(curr_state, a) for a in self._actions]) - self.Q.get((state, action), None)))
