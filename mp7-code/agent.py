@@ -79,24 +79,27 @@ class Agent:
         v_x = state[2]
         v_y = state[3]
         paddle_y = state[4]
-
         paddle_height = 0.2
 
         x_vel = -1
-        y_vel = -1
         if v_x > 0:
             x_vel = 1
-        if abs(v_y) <  0.015:
+
+        y_vel = -1
+        if abs(v_y) < 0.015:
             y_vel = 0
         elif v_y >= 0.015:
             y_vel = 1
-        else:
-            y_vel = 0
         
         discrete_paddle = math.floor(12 * paddle_y / (1 - paddle_height))
         if paddle_y == 1 - paddle_height:
             discrete_paddle = 11
-        return (ball_x, ball_y, x_vel, y_vel, discrete_paddle)
+
+        rescaled_x = math.ceil(ball_x*self._x_bins)
+        rescaled_y = math.ceil(ball_y*self._y_bins)
+        discrete_position = (rescaled_y * (self._x_bins-1)) + rescaled_x
+
+        return discrete_position, x_vel, y_vel, discrete_paddle
 
     def getReward(self, won, bounces, done):
         reward = 0
