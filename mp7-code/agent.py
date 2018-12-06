@@ -3,7 +3,7 @@ import random
 import math
 
 class Agent:
-    
+
     def __init__(self, actions,  two_sided = False):
         self._actions = actions
         self._train = True
@@ -26,7 +26,7 @@ class Agent:
 
     def train(self):
         self._train = True
-        
+
     def eval(self):
         self._train = False
 
@@ -37,16 +37,16 @@ class Agent:
     def load_model(self,model_path):
         # Load the trained model for evaluation
         self.Q = utils.load(model_path)
-    
+
 # https://studywolf.wordpress.com/2012/11/25/reinforcement-learning-q-learning-and-exploration/
 # linked from lecture
 
     def getQ(self, state, action):
         return self.Q.get((state, action), 0.0)
         # return self.Q.get((state, action), 1.0)
-    
+
     def learnQ(self, state, action, reward, value):
-        curr_q = self.Q.get((state, action), None)
+        curr_q = self.Q.get((self.getNextState(state), action), None)
         if curr_q is None:
             self.Q[(state, action)] = reward
         else:
@@ -71,9 +71,32 @@ class Agent:
     def learn(self, prev_state, action, reward, prime_state):
         max_q = max([self.getQ(prime_state, a) for a in self._actions])
         self.learnQ(prev_state, action, reward, reward + self.gamma*max_q)
-    
-    
+
+    def getNextState(self, state, action):
+        start_ball,t1,t2, start_paddle = self.getDiscreteState(state)
+        ball_x = state[0]
+        ball_y = state[1]
+        v_x = state[2]
+        v_y = state[3]
+        p = state[4]
+        lower_x = state[2] / 12
+        lower_y = state[3] / 12
+        lower_p = state[4] / 12
+        upper_x = lower_x + 1/12
+        upper_y = lower_y + 1/12
+        upper_p = lower_p + 1/12
+
+        while v_x > lower_x and v_y > lower_y and v_x < upper_x and v_y < upper_y and p > lower_p and p < upper_p:
+            ball_x += v_x * .005
+            ball_y += v_y * .005
+            p += action * .001
+
+        return self.getDiscreteState((ball_x, ball_y, v_x, v_y, p))
+
+
+
     def getDiscreteState(self, state):
+        print(state)
         ball_x = state[0]
         ball_y = state[1]
         v_x = state[2]
@@ -90,7 +113,7 @@ class Agent:
             y_vel = 0
         elif v_y >= 0.015:
             y_vel = 1
-        
+
         discrete_paddle = math.floor(12 * paddle_y / (1 - paddle_height))
         if paddle_y == 1 - paddle_height:
             discrete_paddle = 11
@@ -108,6 +131,3 @@ class Agent:
         elif done and not won:
             reward = -1
         #to be continue
-
-
-
