@@ -21,10 +21,15 @@ class Agent:
         self.alpha = .2
         self.gamma = .9
 
+        self.prev_state = None
+        self.prev_action = None
 
     def act(self, state, bounces, done, won):
          #TODO - fill out this function
-        return self._actions[0]
+        reward = getReward(state)
+        action = self.learn(self.prev_state, self.prev_action, reward, state)
+        return action
+        # return self._actions[0]
 
     def train(self):
         self._train = True
