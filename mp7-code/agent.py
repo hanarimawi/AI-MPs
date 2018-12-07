@@ -15,10 +15,12 @@ class Agent:
         self._num_actions = utils.NUM_ACTIONS
         # Create the Q Table to work with
         self.Q = utils.create_q_table()
+        self.last_x_dir = self._v_x
 
         self.epsilon = .1
         self.alpha = .2
         self.gamma = .9
+
 
     def act(self, state, bounces, done, won):
          #TODO - fill out this function
@@ -118,16 +120,22 @@ class Agent:
         if paddle_y == 1 - paddle_height:
             discrete_paddle = 11
 
-        rescaled_x = math.ceil(ball_x*self._x_bins)
-        rescaled_y = math.ceil(ball_y*self._y_bins)
-        discrete_position = (rescaled_y * (self._x_bins-1)) + rescaled_x
+        rescaled_x = math.floor(ball_x*self._x_bins)
+        rescaled_y = math.floor(ball_y*self._y_bins)
+        discrete_position = (rescaled_y * self._x_bins) + rescaled_x
 
         return discrete_position, x_vel, y_vel, discrete_paddle
 
-    def getReward(self, won, bounces, done):
-        reward = 0
-        if done and won:
-            reward = 1
-        elif done and not won:
-            reward = -1
+    def getReward(self, state):
+        if state[0] > 1:
+            return -1
+        ball_pos, t1, t2, discrete_paddle = self.getDiscreteState(state)
+
+        ball_x = discrete_position % 12
+        ball_y = int(discrete_position/12)
+
+        if ball_x == 1 and state[1] > state[4] and state[1] < state[4] + .2:
+            return 1
+
         #to be continue
+        return 0
