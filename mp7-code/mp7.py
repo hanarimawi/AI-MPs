@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to the University of Illinois at Urbana-Champaign
-# 
+#
 # Created by Chris Benson (cebenso2@illinois.edu) on 09/18/2018
 import pygame
 from pygame.locals import *
@@ -20,7 +20,6 @@ class Application:
         self.args = args
         self.env = Pong(self.args.opponent)
         self.agent = Agent(self.env.get_actions(), two_sided = self.args.opponent)
-        
     def execute(self):
         if not self.args.human:
             if self.args.train_eps != 0:
@@ -36,7 +35,7 @@ class Application:
 
         self.bounce_results = []
         self.win_results = []
-        
+
         for game in range(1, self.args.train_eps + 1):
             state = self.env.get_state()
             done, won = False, False
@@ -51,7 +50,7 @@ class Application:
             self.win_results.append(won)
             if game % self.args.window == 0:
                 print(
-                    "Games:", len(self.bounce_results) - window, "-", len(self.bounce_results), 
+                    "Games:", len(self.bounce_results) - window, "-", len(self.bounce_results),
                     "Bounces (Average:", sum(self.bounce_results[-window:])/window,
                     "Max:", max(self.bounce_results[-window:]),
                     "Min:", min(self.bounce_results[-window:]),")",
@@ -135,11 +134,11 @@ class Application:
             if event.type == pygame.QUIT:
                 return True
         return False
-                
-            
+
+
 def main():
     parser = argparse.ArgumentParser(description='CS440 MP7 Pong')
-    
+
     parser.add_argument('--model_name', dest="model_name", type=str, default = "q_agent.npy",
                         help='name of model to save if training or to load if evaluating - default q_agent')
 

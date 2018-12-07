@@ -46,7 +46,7 @@ class Agent:
         # return self.Q.get((state, action), 1.0)
 
     def learnQ(self, state, action, reward, value):
-        curr_q = self.Q.get((self.getNextState(state), action), None)
+        curr_q = self.Q.get((self.getNextState(state,action), action), None)
         if curr_q is None:
             self.Q[(state, action)] = reward
         else:
