@@ -15,7 +15,9 @@ class Agent:
         self._num_actions = utils.NUM_ACTIONS
         # Create the Q Table to work with
         self.Q = utils.create_q_table()
+        #(X_BINS,Y_BINS,V_X,V_Y,PADDLE_LOCATIONS,NUM_ACTIONS)
         self.last_x_dir = self._v_x
+
 
         self.epsilon = .1
         self.alpha = .2
@@ -23,13 +25,18 @@ class Agent:
 
         self.prev_state = None
         self.prev_action = None
+        self.prev_reward = None
+        self.N = self.Q.copy()
+
 
     def act(self, state, bounces, done, won):
          #TODO - fill out this function
-        reward = getReward(state)
-        action = self.learn(self.prev_state, self.prev_action, reward, state)
-        return action
-        # return self._actions[0]
+        #  print(state)
+        # reward = getReward(state)
+        # action = self.learn(self.prev_state, self.prev_action, reward, state)
+        # return action
+        # print(self.Q.shape)
+        return self._actions[0]
 
     def train(self):
         self._train = True
@@ -47,37 +54,44 @@ class Agent:
 
 # https://studywolf.wordpress.com/2012/11/25/reinforcement-learning-q-learning-and-exploration/
 # linked from lecture
+    def isTerminal(self, state):
+        return False
 
-    def getQ(self, state, action):
-        return self.Q.get((state, action), 0.0)
-        # return self.Q.get((state, action), 1.0)
 
-    def learnQ(self, state, action, reward, value):
-        curr_q = self.Q.get((self.getNextState(state,action), action), None)
-        if curr_q is None:
-            self.Q[(state, action)] = reward
-        else:
-            self.Q[(state, action)] = curr_q + self.alpha * (value - curr_q)
+    def qLearningAgent(self, prime_state):
+        print(self.Q.shape)
+        prime_reward = self.getReward(prime_state)
+        d_state, x_vel, y_vel, discrete_paddle  = self.getDiscreteState(self.prev_state)
+        p_d_state, p_x_vel, p_y_vel, p_discrete_paddle  = self.getDiscreteState(prime_state)
 
-    def chooseAction(self, state):
-        if random.random() < self.epsilon:
-            action = random.choice(self._actions)
-        else:
-            q = [self.getQ(state, a) for a in self._actions]
-            maxQ = max(q)
-            count = q.count(maxQ)
-            if count > 1:
-                best = [i for i in range(len(self._actions)) if self.Q[i] == maxQ]
-                i = random.choice(best)
-            else:
-                i = self.Q.index(maxQ)
+        ball_x = d_state % 12
+        ball_y = int(d_state/12)
 
-            action = self._actions[i]
-        return action
+        p_ball_x = p_d_state % 12
+        p_ball_y = int(p_d_state/12)
 
-    def learn(self, prev_state, action, reward, prime_state):
-        max_q = max([self.getQ(prime_state, a) for a in self._actions])
-        self.learnQ(prev_state, action, reward, reward + self.gamma*max_q)
+                    #(X_BINS,Y_BINS,V_X,V_Y,PADDLE_LOCATIONS,NUM_ACTIONS)
+        if self.isTerminal(self.prev_state):
+            self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle, 0] = prime_reward
+        elif self.prev_state is not None:
+            self.N[ball_x, ball_y, x_vel, y_vel, discrete_paddle, self.prev_action] += 1
+            nsa = self.N[ball_x, ball_y, x_vel, y_vel, discrete_paddle, self.prev_action]
+            qsa = self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle, self.prev_action]
+
+            a_list = self.Q[p_ball_x, p_ball_y, p_x_vel, p_y_vel, p_discrete_paddle]
+            max_a_index = a_list.index(max(a_list))
+
+            max_qsa_prime = self.Q[p_ball_x, p_ball_y, p_x_vel, p_y_vel, p_discrete_paddle, max_a_index]
+            nsa_prime = self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle, max_a_index]
+
+
+            qsa += (self.alpha * nsa) * ( self.prev_reward + self.gamma * max_qsa_prime - qsa )
+        self.prev_state = prime_state
+        self.prev_action = max_a_index
+        self.prev_reward = prime_reward 
+
+        return self._actions[self.prev_action]        
+
 
     def getNextState(self, state, action):
         start_ball,t1,t2, start_paddle = self.getDiscreteState(state)
@@ -134,7 +148,7 @@ class Agent:
     def getReward(self, state):
         if state[0] > 1:
             return -1
-        ball_pos, t1, t2, discrete_paddle = self.getDiscreteState(state)
+        discrete_position, t1, t2, discrete_paddle = self.getDiscreteState(state)
 
         ball_x = discrete_position % 12
         ball_y = int(discrete_position/12)
