@@ -54,12 +54,22 @@ class Agent:
 
 # https://studywolf.wordpress.com/2012/11/25/reinforcement-learning-q-learning-and-exploration/
 # linked from lecture
-    def isTerminal(self, state):
-        return False
+    def isTerminal(self, done):
+        return done == True
+
+    def f(self, count, max_q, a_list):
+        if random.random() < self.epsilon:
+            action = random.choice(self._actions)
+        else:
+            if count > 1:
+                best = [i for i in range(len(self._actions)) if a_list[i] == max_q]
+                i = random.choice(best)
+            else:
+                i = a_list.index(max_q)
+        return i
 
 
-    def qLearningAgent(self, prime_state):
-        print(self.Q.shape)
+    def qLearningAgent(self, prime_state, done):
         prime_reward = self.getReward(prime_state)
         d_state, x_vel, y_vel, discrete_paddle  = self.getDiscreteState(self.prev_state)
         p_d_state, p_x_vel, p_y_vel, p_discrete_paddle  = self.getDiscreteState(prime_state)
@@ -71,7 +81,7 @@ class Agent:
         p_ball_y = int(p_d_state/12)
 
                     #(X_BINS,Y_BINS,V_X,V_Y,PADDLE_LOCATIONS,NUM_ACTIONS)
-        if self.isTerminal(self.prev_state):
+        if self.isTerminal(done):
             self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle, 0] = prime_reward
         elif self.prev_state is not None:
             self.N[ball_x, ball_y, x_vel, y_vel, discrete_paddle, self.prev_action] += 1
@@ -79,15 +89,17 @@ class Agent:
             qsa = self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle, self.prev_action]
 
             a_list = self.Q[p_ball_x, p_ball_y, p_x_vel, p_y_vel, p_discrete_paddle]
-            max_a_index = a_list.index(max(a_list))
+            max_q = max(a_list)
+            count = a_list.count(max_q)
+            action_prime_index = self.f(count, max_q, a_list)
 
-            max_qsa_prime = self.Q[p_ball_x, p_ball_y, p_x_vel, p_y_vel, p_discrete_paddle, max_a_index]
-            nsa_prime = self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle, max_a_index]
+            max_qsa_prime = self.Q[p_ball_x, p_ball_y, p_x_vel, p_y_vel, p_discrete_paddle, action_prime_index]
+            nsa_prime = self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle, action_prime_index]
 
 
             qsa += (self.alpha * nsa) * ( self.prev_reward + self.gamma * max_qsa_prime - qsa )
         self.prev_state = prime_state
-        self.prev_action = max_a_index
+        self.prev_action = action_prime_index
         self.prev_reward = prime_reward 
 
         return self._actions[self.prev_action]        
