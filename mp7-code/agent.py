@@ -28,7 +28,7 @@ class Agent:
         self.games_played = 0
         self.epsilon = .4
         self.alpha = .2
-        self.gamma = .9
+        self.gamma = .8
 
         self.prev_state = None
         self.prev_action = None
@@ -55,12 +55,14 @@ class Agent:
             self.games_played += 1
             if(self.epsilon > .06):
                 self.epsilon *= .9998
-            if self.games_played%100 == 0:
-                print(self.games_played)
-                print(self.epsilon)
-        if self._train == False:
-            self.epsilon = 0
-            
+            if(self.alpha > .02):
+                self.alpha *= .99993
+            if self.games_played%1000 == 0:
+                print('alpha',self.alpha)
+                print('epsilon', self.epsilon)
+        #if self._train == False:
+        #    self.epsilon = 0
+
         d_state, x_vel, y_vel, discrete_paddle  = self.getDiscreteState(self.prev_state)
 
         ball_x = d_state % 12
@@ -182,7 +184,7 @@ class Agent:
         if ball_x == 11 and (state[1] > state[4] and state[1] < state[4] + .2):
             return 1
         if ball_x == 11:
-            return -1
+            return -5
 
         #to be continue
         return 0
