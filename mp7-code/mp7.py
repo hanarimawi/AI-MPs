@@ -40,6 +40,8 @@ class Application:
             state = self.env.get_state()
             done, won = False, False
             action = self.agent.act(state, 0, done, won)
+            #if game%100 == 0:
+            #    print(self.agent.Q[11,10,1,1])
             count = 0
             while not done:
                 count +=1

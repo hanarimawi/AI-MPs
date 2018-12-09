@@ -1,7 +1,7 @@
 import utils
 import random
 import math
-
+import collections
 class Agent:
 
     def __init__(self, actions,  two_sided = False):
@@ -15,11 +15,18 @@ class Agent:
         self._num_actions = utils.NUM_ACTIONS
         # Create the Q Table to work with
         self.Q = utils.create_q_table()
+        # for i in range(12):
+        #     for j in range(12):
+        #         for k in range(2):
+        #             for l in range(3):
+        #                 for m in range(12):
+        #                     for n in range(3):
+        #                         self.Q[i,j,k,l,m,n] =
         #(X_BINS,Y_BINS,V_X,V_Y,PADDLE_LOCATIONS,NUM_ACTIONS)
         self.last_x_dir = self._v_x
 
 
-        self.epsilon = .1
+        self.epsilon = .3
         self.alpha = .2
         self.gamma = .9
 
@@ -36,7 +43,22 @@ class Agent:
         # action = self.learn(self.prev_state, self.prev_action, reward, state)
         # return action
         # print(self.Q.shape)
-        return self._actions[0]
+        if self.prev_state == None:
+            self.prev_state = state
+            self.prev_action = 1
+            self.prev_reward = 0
+            return 0
+        #print(state)
+        self.qLearningAgent(state)
+
+        d_state, x_vel, y_vel, discrete_paddle  = self.getDiscreteState(self.prev_state)
+
+        ball_x = d_state % 12
+        ball_y = int(d_state/12)
+
+        a_list = list(self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle])
+        return a_list.index(max(a_list))
+
 
     def train(self):
         self._train = True
@@ -54,23 +76,23 @@ class Agent:
 
 # https://studywolf.wordpress.com/2012/11/25/reinforcement-learning-q-learning-and-exploration/
 # linked from lecture
-    def isTerminal(self, done):
-        return done == True
 
     def f(self, count, max_q, a_list):
         if random.random() < self.epsilon:
             action = random.choice(self._actions)
+            return action
         else:
             if count > 1:
                 best = [i for i in range(len(self._actions)) if a_list[i] == max_q]
                 i = random.choice(best)
             else:
-                i = a_list.index(max_q)
+                i = list(a_list).index(max_q)
         return i
 
 
-    def qLearningAgent(self, prime_state, done):
+    def qLearningAgent(self, prime_state):
         prime_reward = self.getReward(prime_state)
+        self.prev_reward = prime_reward
         d_state, x_vel, y_vel, discrete_paddle  = self.getDiscreteState(self.prev_state)
         p_d_state, p_x_vel, p_y_vel, p_discrete_paddle  = self.getDiscreteState(prime_state)
 
@@ -81,8 +103,9 @@ class Agent:
         p_ball_y = int(p_d_state/12)
 
                     #(X_BINS,Y_BINS,V_X,V_Y,PADDLE_LOCATIONS,NUM_ACTIONS)
-        if self.isTerminal(done):
+        if ball_x == 11:
             self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle, 0] = prime_reward
+            action_prime_index = 0
         elif self.prev_state is not None:
             self.N[ball_x, ball_y, x_vel, y_vel, discrete_paddle, self.prev_action] += 1
             nsa = self.N[ball_x, ball_y, x_vel, y_vel, discrete_paddle, self.prev_action]
@@ -90,7 +113,7 @@ class Agent:
 
             a_list = self.Q[p_ball_x, p_ball_y, p_x_vel, p_y_vel, p_discrete_paddle]
             max_q = max(a_list)
-            count = a_list.count(max_q)
+            count = collections.Counter(a_list)[max_q]
             action_prime_index = self.f(count, max_q, a_list)
 
             max_qsa_prime = self.Q[p_ball_x, p_ball_y, p_x_vel, p_y_vel, p_discrete_paddle, action_prime_index]
@@ -100,9 +123,9 @@ class Agent:
             qsa += (self.alpha * nsa) * ( self.prev_reward + self.gamma * max_qsa_prime - qsa )
         self.prev_state = prime_state
         self.prev_action = action_prime_index
-        self.prev_reward = prime_reward 
-
-        return self._actions[self.prev_action]        
+        self.prev_reward = prime_reward
+        #print(self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle, self.prev_action])
+        return self._actions[self.prev_action]
 
 
     def getNextState(self, state, action):
@@ -129,7 +152,7 @@ class Agent:
 
 
     def getDiscreteState(self, state):
-        print(state)
+        #print(state)
         ball_x = state[0]
         ball_y = state[1]
         v_x = state[2]
@@ -147,26 +170,26 @@ class Agent:
         elif v_y >= 0.015:
             y_vel = 1
 
-        discrete_paddle = math.floor(12 * paddle_y / (1 - paddle_height))
+        discrete_paddle = min(11,math.floor(12 * paddle_y / (1 - paddle_height)))
         if paddle_y == 1 - paddle_height:
             discrete_paddle = 11
 
-        rescaled_x = math.floor(ball_x*self._x_bins)
-        rescaled_y = math.floor(ball_y*self._y_bins)
+        rescaled_x = min(11,math.floor(ball_x*self._x_bins))
+        rescaled_y = min(11,math.floor(ball_y*self._y_bins))
         discrete_position = (rescaled_y * self._x_bins) + rescaled_x
 
         return discrete_position, x_vel, y_vel, discrete_paddle
 
     def getReward(self, state):
-        if state[0] > 1:
-            return -1
         discrete_position, t1, t2, discrete_paddle = self.getDiscreteState(state)
 
         ball_x = discrete_position % 12
         ball_y = int(discrete_position/12)
 
-        if ball_x == 1 and state[1] > state[4] and state[1] < state[4] + .2:
+        if ball_x == 11 and (state[1] > state[4] and state[1] < state[4] + .2):
             return 1
+        if ball_x == 11:
+            return -1
 
         #to be continue
         return 0
