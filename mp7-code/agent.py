@@ -25,8 +25,8 @@ class Agent:
         #(X_BINS,Y_BINS,V_X,V_Y,PADDLE_LOCATIONS,NUM_ACTIONS)
         self.last_x_dir = self._v_x
 
-
-        self.epsilon = .3
+        self.games_played = 0
+        self.epsilon = .1
         self.alpha = .2
         self.gamma = .9
 
@@ -55,9 +55,11 @@ class Agent:
 
         ball_x = d_state % 12
         ball_y = int(d_state/12)
-
+        #print(ball_x, ball_y, discrete_paddle)
+        #print(self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle])
         a_list = list(self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle])
-        return a_list.index(max(a_list))
+        #print(a_list.index(max(a_list)))
+        return a_list.index(max(a_list)) - 1
 
 
     def train(self):
@@ -101,12 +103,15 @@ class Agent:
 
         p_ball_x = p_d_state % 12
         p_ball_y = int(p_d_state/12)
-
+        if self.prev_state is None:
+            action_prime_index = random.choice([0,1,2])
                     #(X_BINS,Y_BINS,V_X,V_Y,PADDLE_LOCATIONS,NUM_ACTIONS)
-        if ball_x == 11:
-            self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle, 0] = prime_reward
-            action_prime_index = 0
-        elif self.prev_state is not None:
+        # if ball_x == 11:
+        #     self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle, 0] = prime_reward
+        #     self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle, 1] = prime_reward
+        #     self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle, 2] = prime_reward
+        #     action_prime_index = 0
+        if self.prev_state is not None:
             self.N[ball_x, ball_y, x_vel, y_vel, discrete_paddle, self.prev_action] += 1
             nsa = self.N[ball_x, ball_y, x_vel, y_vel, discrete_paddle, self.prev_action]
             qsa = self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle, self.prev_action]
@@ -119,35 +124,13 @@ class Agent:
             max_qsa_prime = self.Q[p_ball_x, p_ball_y, p_x_vel, p_y_vel, p_discrete_paddle, action_prime_index]
             nsa_prime = self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle, action_prime_index]
 
-
-            qsa += (self.alpha * nsa) * ( self.prev_reward + self.gamma * max_qsa_prime - qsa )
+            qsa += (self.alpha) * ( self.prev_reward + self.gamma * max_qsa_prime - qsa )
+            self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle, self.prev_action] = qsa
         self.prev_state = prime_state
         self.prev_action = action_prime_index
         self.prev_reward = prime_reward
         #print(self.Q[ball_x, ball_y, x_vel, y_vel, discrete_paddle, self.prev_action])
         return self._actions[self.prev_action]
-
-
-    def getNextState(self, state, action):
-        start_ball,t1,t2, start_paddle = self.getDiscreteState(state)
-        ball_x = state[0]
-        ball_y = state[1]
-        v_x = state[2]
-        v_y = state[3]
-        p = state[4]
-        lower_x = state[2] / 12
-        lower_y = state[3] / 12
-        lower_p = state[4] / 12
-        upper_x = lower_x + 1/12
-        upper_y = lower_y + 1/12
-        upper_p = lower_p + 1/12
-
-        while v_x > lower_x and v_y > lower_y and v_x < upper_x and v_y < upper_y and p > lower_p and p < upper_p:
-            ball_x += v_x * .005
-            ball_y += v_y * .005
-            p += action * .001
-
-        return self.getDiscreteState((ball_x, ball_y, v_x, v_y, p))
 
 
 
