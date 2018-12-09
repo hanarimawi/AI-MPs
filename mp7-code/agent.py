@@ -26,7 +26,7 @@ class Agent:
         self.last_x_dir = self._v_x
 
         self.games_played = 0
-        self.epsilon = .4
+        self.epsilon = .5
         self.alpha = .2
         self.gamma = .8
 
@@ -49,13 +49,13 @@ class Agent:
             self.prev_reward = 0
             return 0
         #print(state)
-        self.qLearningAgent(state)
+        self.qLearningAgent(state, won, done)
 
         if done:
             self.games_played += 1
-            if(self.epsilon > .06):
-                self.epsilon *= .9998
-            if(self.alpha > .02):
+            if(self.epsilon > .08):
+                self.epsilon *= .9999
+            if(self.alpha > .025):
                 self.alpha *= .99993
             if self.games_played%1000 == 0:
                 print('alpha',self.alpha)
@@ -104,8 +104,8 @@ class Agent:
         return i
 
 
-    def qLearningAgent(self, prime_state):
-        prime_reward = self.getReward(prime_state)
+    def qLearningAgent(self, prime_state, won, done):
+        prime_reward = self.getReward(prime_state, won, done)
         self.prev_reward = prime_reward
         d_state, x_vel, y_vel, discrete_paddle  = self.getDiscreteState(self.prev_state)
         p_d_state, p_x_vel, p_y_vel, p_discrete_paddle  = self.getDiscreteState(prime_state)
@@ -175,16 +175,19 @@ class Agent:
 
         return discrete_position, x_vel, y_vel, discrete_paddle
 
-    def getReward(self, state):
+    def getReward(self, state, won, done):
         discrete_position, t1, t2, discrete_paddle = self.getDiscreteState(state)
 
         ball_x = discrete_position % 12
         ball_y = int(discrete_position/12)
-
+        if won:
+            return 8
+        if done and not won:
+            return -8
         if ball_x == 11 and (state[1] > state[4] and state[1] < state[4] + .2):
             return 1
-        if ball_x == 11:
-            return -5
+        #if ball_x == 11:
+        #    return -5
 
         #to be continue
         return 0
