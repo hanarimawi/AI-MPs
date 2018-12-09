@@ -26,7 +26,7 @@ class Agent:
         self.last_x_dir = self._v_x
 
         self.games_played = 0
-        self.epsilon = .1
+        self.epsilon = .4
         self.alpha = .2
         self.gamma = .9
 
@@ -51,6 +51,16 @@ class Agent:
         #print(state)
         self.qLearningAgent(state)
 
+        if done:
+            self.games_played += 1
+            if(self.epsilon > .06):
+                self.epsilon *= .9998
+            if self.games_played%100 == 0:
+                print(self.games_played)
+                print(self.epsilon)
+        if self._train == False:
+            self.epsilon = 0
+            
         d_state, x_vel, y_vel, discrete_paddle  = self.getDiscreteState(self.prev_state)
 
         ball_x = d_state % 12
