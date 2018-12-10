@@ -15,20 +15,12 @@ class Agent:
         self._num_actions = utils.NUM_ACTIONS
         # Create the Q Table to work with
         self.Q = utils.create_q_table()
-        # for i in range(12):
-        #     for j in range(12):
-        #         for k in range(2):
-        #             for l in range(3):
-        #                 for m in range(12):
-        #                     for n in range(3):
-        #                         self.Q[i,j,k,l,m,n] =
-        #(X_BINS,Y_BINS,V_X,V_Y,PADDLE_LOCATIONS,NUM_ACTIONS)
         self.last_x_dir = self._v_x
 
         self.games_played = 0
         self.epsilon = .5
         self.alpha = .2
-        self.gamma = .8
+        self.gamma = .9
 
         self.prev_state = None
         self.prev_action = None
@@ -181,13 +173,13 @@ class Agent:
         ball_x = discrete_position % 12
         ball_y = int(discrete_position/12)
         if won:
-            return 8
+            return 10
         if done and not won:
-            return -8
+            return -10
         if ball_x == 11 and (state[1] > state[4] and state[1] < state[4] + .2):
             return 1
-        #if ball_x == 11:
-        #    return -5
+        if ball_x == 11:
+            return -1
 
         #to be continue
         return 0
