@@ -41,6 +41,10 @@ class Agent:
             self.prev_reward = 0
             return 0
         #print(state)
+        if self._train == False:
+                self.epsilon = 0
+                self.alpha = 0
+                self.gamma = 0
         self.qLearningAgent(state, won, done)
 
         if done:
